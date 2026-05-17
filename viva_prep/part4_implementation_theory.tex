@@ -1,0 +1,265 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\definecolor{qcolor}{HTML}{1A5276}
+\definecolor{acolor}{HTML}{196F3D}
+\definecolor{boxbg}{HTML}{EBF5FB}
+\definecolor{ansbox}{HTML}{EAFAF1}
+\definecolor{tipbox}{HTML}{FEF9E7}
+\definecolor{codebg}{HTML}{F4F6F7}
+
+\tcbset{
+    qbox/.style={colback=boxbg, colframe=qcolor, coltitle=white, fonttitle=\bfseries, coltext=black, left=4pt, right=4pt, top=4pt, bottom=4pt, boxrule=0.8pt, arc=3pt},
+    abox/.style={colback=ansbox, colframe=acolor, coltitle=white, fonttitle=\bfseries, coltext=black, left=4pt, right=4pt, top=4pt, bottom=4pt, boxrule=0.5pt, arc=3pt},
+    tipbox/.style={colback=tipbox, colframe=orange!70!black, fonttitle=\bfseries, left=4pt, right=4pt, top=4pt, bottom=4pt, boxrule=0.5pt, arc=3pt}
+}
+
+\newcounter{qcounter}
+\setcounter{qcounter}{78}
+\newcommand{\vq}[1]{\stepcounter{qcounter}\begin{tcolorbox}[qbox, title=Q\theqcounter]#1\end{tcolorbox}}
+\newcommand{\va}[1]{\begin{tcolorbox}[abox, title=Answer]#1\end{tcolorbox}\vspace{6pt}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textbf{TFML Viva Prep --- Part 4}}
+\fancyhead[R]{\small CS6302E | Winter 2026}
+\fancyfoot[C]{\thepage}
+
+\title{\textbf{TFML Assignment Viva --- Question Bank}\\[4pt]\Large Part 4: Implementation, Web App \& Rapid-Fire Theory}
+\author{CS6302E --- Theoretical Foundations of Machine Learning}
+\date{NIT Calicut | Winter 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+%=============================================================================
+\section{Implementation-Specific Questions}
+%=============================================================================
+
+\vq{Why did you implement the network from scratch instead of using PyTorch/TensorFlow?}
+\va{This is a \textbf{TFML} course. Implementing from scratch demonstrates understanding of the exact math of forward/backward passes, gradient flow, matrix operations, weight initialization, and gradient descent. A framework would hide these details behind abstractions like \texttt{loss.backward()}.}
+
+\vq{Walk me through the forward pass in your code.}
+\va{
+\colorbox{codebg}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+\ttfamily\small
+self.z1 = X @ self.W1 + self.b1 ~~\textnormal{\textit{(300,64)@(64,3)+(1,3)}}\\
+self.a1 = self.sigmoid(self.z1) ~~\textnormal{\textit{element-wise sigmoid}}\\[4pt]
+self.z2 = self.a1 @ self.W2 + self.b2 ~~\textnormal{\textit{(300,3)@(3,3)+(1,3)}}\\
+self.a2 = self.sigmoid(self.z2) ~~\textnormal{\textit{element-wise sigmoid}}
+}}
+
+\medskip
+The \texttt{@} operator performs \textbf{matrix multiplication}. Broadcasting handles the bias addition.
+}
+
+\vq{Walk me through the backward pass in your code.}
+\va{
+\colorbox{codebg}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+\ttfamily\small
+output\_error = self.a2 - y\_true\\
+output\_delta = output\_error * self.sigmoid\_derivative(self.a2)\\[4pt]
+hidden\_error = output\_delta @ self.W2.T\\
+hidden\_delta = hidden\_error * self.sigmoid\_derivative(self.a1)\\[4pt]
+dW2 = (self.a1.T @ output\_delta) / n\_samples\\
+dW1 = (X.T @ hidden\_delta) / n\_samples\\[4pt]
+self.W2 -= learning\_rate * dW2\\
+self.W1 -= learning\_rate * dW1
+}}
+}
+
+\vq{Why do you store z1, a1, z2, a2 as instance variables?}
+\va{They are needed in \textbf{both} forward and backward passes. Forward computes and stores them; backward uses them for gradients. For example, \texttt{self.a1} is needed for \texttt{dW2 = a1.T @ output\_delta}, and \texttt{self.a2} for the sigmoid derivative. Avoids recomputation.}
+
+\vq{How is one-hot encoding used and why?}
+\va{Labels: \textbf{B = [1,0,0], 0 = [0,1,0], E = [0,0,1]}. One-hot encoding:
+\begin{itemize}[nosep]
+    \item Makes each class a \textbf{separate output neuron}
+    \item Allows MSE loss element-wise between predicted and target vectors
+    \item Predicted class = \texttt{argmax} of the output vector
+\end{itemize}
+}
+
+\vq{How do you determine the predicted class from the output?}
+\va{\texttt{predictions = np.argmax(output, axis=1)} --- for each sample, the output neuron with the \textbf{highest activation} is the predicted class. Index 0 = B, 1 = 0, 2 = E.}
+
+\vq{How do you shuffle the dataset and why is it important?}
+\va{
+\colorbox{codebg}{\parbox{\dimexpr\linewidth-2\fboxsep}{%
+\ttfamily\small
+shuffle\_idx = np.random.permutation(len(X))\\
+X = X[shuffle\_idx]\\
+y = y[shuffle\_idx]
+}}
+
+\medskip
+Without shuffling, data is ordered by class (100 B's, 100 0's, 100 E's). For \textbf{full-batch GD} this doesn't actually matter. But for mini-batch/SGD, unshuffled data causes \textbf{biased gradient updates} (batches of single class).
+}
+
+\vq{How does model save and load work?}
+\va{\texttt{np.savez()} saves $W_1, b_1, W_2, b_2$ and architecture metadata to a \texttt{.npz} file. \texttt{np.load()} restores all parameters. This lets the trained model be used by the web application without retraining.}
+
+%=============================================================================
+\section{Web Application (Part d)}
+%=============================================================================
+
+\vq{Describe the web application you built.}
+\va{A \textbf{Flask-based web app} with two input methods:
+\begin{enumerate}[nosep]
+    \item \textbf{Image Upload}: Upload PNG/JPG/BMP, preprocessed to $8\times 8$, grayscale, normalized to $[-1, +1]$
+    \item \textbf{Canvas Drawing}: Draw directly in the browser using HTML5 Canvas
+\end{enumerate}
+Displays: predicted letter, confidence scores as animated bars, and the preprocessed $8\times 8$ image fed to the network.
+}
+
+\vq{How is an uploaded image preprocessed for the network?}
+\va{
+\begin{enumerate}[nosep]
+    \item Load and convert to \textbf{grayscale}
+    \item \textbf{Resize} to $8\times 8$ pixels
+    \item \textbf{Normalize} from $[0, 255]$ to $[-1, +1]$: \texttt{normalized = (pixel / 127.5) - 1}
+    \item \textbf{Flatten} to a 64-dimensional vector
+    \item Pass through the neural network's forward pass
+\end{enumerate}
+}
+
+\vq{Why must preprocessing match the training data format?}
+\va{The network was trained on $[-1, +1]$ at $8\times 8$ resolution. If input uses $[0, 255]$ or different resolution, dot products have incorrect magnitudes, sigmoid saturates or produces meaningless values. \textbf{Training and inference must use the same data pipeline.}}
+
+%=============================================================================
+\section{Rapid-Fire Theory Questions}
+%=============================================================================
+
+\vq{What is a perceptron and how does it differ from your network?}
+\va{A perceptron is a \textbf{single neuron} with a step activation --- computes weighted sum, outputs 0 or 1. Can only learn \textbf{linearly separable} functions. Our network has multiple neurons with sigmoid activation and a hidden layer, enabling \textbf{non-linear} decision boundaries.}
+
+\vq{State the Universal Approximation Theorem.}
+\va{A feedforward network with a \textbf{single hidden layer} and a non-constant, bounded, monotonically increasing activation function can approximate any continuous function on compact subsets of $\mathbb{R}^n$ to \textbf{arbitrary precision}, given enough hidden neurons. Guarantees \textbf{representational power} but not learnability or sample efficiency.}
+
+\vq{What is regularization? Why might you need it?}
+\va{Regularization adds a penalty for model complexity to prevent overfitting:
+\begin{itemize}[nosep]
+    \item \textbf{L2 (Ridge)}: Add $\lambda \|W\|^2$ to loss, pushes weights toward zero
+    \item \textbf{L1 (Lasso)}: Add $\lambda \|W\|_1$, encourages sparsity
+    \item \textbf{Dropout}: Randomly zero out neurons during training
+\end{itemize}
+For 64-3-3 (207 params, 300 samples, ratio 1.4:1), regularization is less critical. For $X=32$ (2147 params, ratio 0.14:1), it would help significantly.
+}
+
+\vq{What is cross-validation and how would you use it here?}
+\va{\textbf{$k$-fold cross-validation}: split data into $k$ folds, train on $k{-}1$, test on remaining, rotate. For 300 samples with 5-fold CV: train on 240, test on 60, repeat 5 times. Gives more reliable \textbf{generalization accuracy} estimate than a single split. We used a separate fixed test set instead.}
+
+\vq{Why is your output layer using sigmoid instead of softmax?}
+\va{\textbf{Sigmoid}: independent probabilities per class (don't sum to 1). \textbf{Softmax}: $\frac{e^{z_i}}{\sum_j e^{z_j}}$ --- normalized distribution (sums to 1). Softmax would be more appropriate for mutually exclusive classification. We used sigmoid for simplicity and pedagogical alignment with TFML.}
+
+\vq{What would change with softmax + cross-entropy instead of sigmoid + MSE?}
+\va{
+\begin{itemize}[nosep]
+    \item Output: Softmax $= \frac{e^{z_i}}{\sum_j e^{z_j}}$ --- outputs sum to 1
+    \item Loss: $-\sum y_i \log(\hat{y}_i)$
+    \item Gradient simplifies to just $\hat{y} - y$ (no sigmoid derivative)
+    \item Effect: \textbf{Faster convergence}, less gradient saturation, better-calibrated probabilities
+\end{itemize}
+}
+
+\vq{What is the role of the learning rate? What if too high or too low?}
+\va{
+\begin{itemize}[nosep]
+    \item \textbf{Too high} (e.g., 5.0): Oscillation, divergence, loss increases
+    \item \textbf{Too low} (e.g., 0.001): Very slow convergence, may get stuck
+    \item \textbf{Just right} (0.5): Fast enough to converge, stable enough to not oscillate
+\end{itemize}
+}
+
+\vq{What is a local minimum? Can gradient descent get stuck?}
+\va{A local minimum is where loss is lower than all nearby points but not the global minimum. Yes, gradient descent \textbf{can} get stuck. The loss landscape is \textbf{non-convex} with many local minima. However, research shows most local minima in neural networks have similar loss to the global minimum, especially in overparameterized networks.}
+
+\vq{What is the difference between a hyperparameter and a parameter?}
+\va{
+\begin{itemize}[nosep]
+    \item \textbf{Parameters}: Learned by the network ($W_1, b_1, W_2, b_2$) --- adjusted by gradient descent
+    \item \textbf{Hyperparameters}: Set by the designer, NOT learned: learning rate (0.5), epochs (5000), hidden size (3), noise range (5.0), initialization scheme (Xavier)
+\end{itemize}
+Architecture search is essentially \textbf{hyperparameter optimization}.
+}
+
+\vq{How would you improve the 94\% accuracy?}
+\va{
+\begin{enumerate}[nosep]
+    \item \textbf{More hidden units} ($X=8$--$16$): higher capacity
+    \item \textbf{ReLU activation}: avoids vanishing gradients
+    \item \textbf{Softmax + cross-entropy}: better training dynamics
+    \item \textbf{More training data}: reduce Bayes error impact
+    \item \textbf{Lower noise}: fundamentally easier problem
+    \item \textbf{Deeper network}: hierarchical features
+    \item \textbf{Data augmentation}: rotations, translations
+\end{enumerate}
+}
+
+\vq{What would happen with a second hidden layer (64-3-3-3)?}
+\va{
+\begin{itemize}[nosep]
+    \item Allows \textbf{hierarchical feature learning}
+    \item Adds 12 more parameters ($3\times 3 + 3$)
+    \item \textbf{Risk vanishing gradients}: $\sigma' \times \sigma' \times \sigma' \leq 0.25^3 \approx 0.016$
+    \item For this simple problem: likely \textbf{no improvement}
+    \item Useful for more complex patterns or larger images
+\end{itemize}
+}
+
+\vq{Can this network handle a new letter (e.g., A) without retraining?}
+\va{\textbf{No.} The network has 3 output neurons hard-coded for B, 0, E. To add a class: add a 4th output neuron (64-X-4), create an A template with noisy samples, and \textbf{retrain from scratch}. This is not designed for incremental learning.}
+
+\vq{What is the Bayes optimal classifier for this problem?}
+\va{Assigns each input to the class with highest posterior: $\hat{y} = \arg\max_k P(k|x)$. For uniform noise, this is equivalent to assigning to the \textbf{nearest template} (minimum Euclidean distance). The Bayes error rate is the probability that noise pushes a sample closer to the wrong template.}
+
+\vq{If you were to present this work in 2 minutes, what would you say?}
+\va{``We built a neural network from scratch to classify noisy $8\times 8$ images of B, 0, and E. The noise is $5\times$ stronger than the signal. A minimal 64-3-3 architecture achieves 94\% accuracy by learning spatial feature detectors. We visualized what each hidden neuron detects, conducted an architecture search showing $X=5$--$10$ is optimal, and performed sample complexity analysis consistent with VC dimension theory. We also built a Flask web app for interactive classification.''}
+
+%=============================================================================
+\section*{Complete Summary --- All 4 Parts}
+%=============================================================================
+
+\begin{center}
+\begin{tabular}{llcl}
+\toprule
+\textbf{Part} & \textbf{Sections} & \textbf{Questions} & \textbf{Topics} \\
+\midrule
+Part 1 & A--G & Q1--Q34 & Problem, noise, architecture, activation, loss, init, training \\
+Part 2 & H--K & Q35--Q55 & Backpropagation, confusion matrix, weight visualizations \\
+Part 3 & L--N & Q56--Q78 & Architecture search, sample complexity, VC dimension \\
+Part 4 & O--Q & Q79--Q104 & Implementation, web app, rapid-fire theory \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{tcolorbox}[tipbox, title=\textbf{Top 10 Most Likely Viva Questions}]
+\begin{enumerate}[nosep]
+    \item Q12: Describe the 64-3-3 architecture
+    \item Q18: Write the sigmoid function and derivative
+    \item Q22: What loss function and why?
+    \item Q25: What weight initialization and why?
+    \item Q35: Derive the backpropagation equations
+    \item Q42: Explain the confusion matrix
+    \item Q47: What are the hidden neurons detecting?
+    \item Q56: How did you conduct architecture search?
+    \item Q65: How did you study sample complexity?
+    \item Q72: What is VC dimension?
+\end{enumerate}
+\end{tcolorbox}
+
+\begin{center}
+\textbf{Good luck tomorrow!}
+\end{center}
+
+\end{document}
