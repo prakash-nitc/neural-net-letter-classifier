@@ -35,10 +35,10 @@ class NeuralNetwork:
     def __init__(self, input_size=64, hidden_size=3, output_size=3, seed=42):
         """
         Initialize the neural network with random weights.
-        
+
         Uses Xavier/Glorot initialization for better convergence:
         weights are drawn from N(0, sqrt(2 / (fan_in + fan_out)))
-        
+
         Args:
             input_size (int): Dimension of input features.
             hidden_size (int): Number of neurons in the hidden layer.
@@ -48,22 +48,23 @@ class NeuralNetwork:
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
-        
+
         np.random.seed(seed)
-        
+
         # Xavier initialization for input-to-hidden weights
         limit1 = np.sqrt(2.0 / (input_size + hidden_size))
         self.W1 = np.random.randn(input_size, hidden_size) * limit1
         self.b1 = np.zeros((1, hidden_size))
-        
+
         # Xavier initialization for hidden-to-output weights
         limit2 = np.sqrt(2.0 / (hidden_size + output_size))
         self.W2 = np.random.randn(hidden_size, output_size) * limit2
         self.b2 = np.zeros((1, output_size))
-        
+
         # Training history
         self.loss_history = []
         self.accuracy_history = []
+        self.val_accuracy_history = []
     
     @staticmethod
     def sigmoid(z):
@@ -173,48 +174,74 @@ class NeuralNetwork:
         self.W1 -= learning_rate * dW1
         self.b1 -= learning_rate * db1
     
-    def train(self, X, y, epochs=1000, learning_rate=0.5, verbose=True, print_every=100):
+    def train(self, X, y, epochs=1000, learning_rate=0.5, batch_size=None,
+              X_val=None, y_val=None, verbose=True, print_every=100):
         """
         Train the neural network using backpropagation.
-        
-        Performs full-batch gradient descent for the specified number of epochs.
-        Records loss and accuracy at each epoch for later plotting.
-        
+
+        Supports both full-batch and mini-batch gradient descent.
+        Records loss and accuracy per epoch for later plotting.
+
         Args:
             X (np.ndarray): Training input, shape (n_samples, input_size).
             y (np.ndarray): Training labels (one-hot), shape (n_samples, output_size).
-            epochs (int): Number of training iterations.
+            epochs (int): Number of training epochs.
             learning_rate (float): Learning rate for gradient descent.
+            batch_size (int or None): Mini-batch size. None = full-batch gradient descent.
+            X_val (np.ndarray or None): Validation inputs for per-epoch val accuracy tracking.
+            y_val (np.ndarray or None): Validation labels (one-hot).
             verbose (bool): Whether to print progress.
             print_every (int): Print frequency (every N epochs).
-        
+
         Returns:
-            tuple: (loss_history, accuracy_history) — lists of loss and accuracy per epoch.
+            tuple: (loss_history, accuracy_history) — lists of per-epoch loss and accuracy.
         """
         self.loss_history = []
         self.accuracy_history = []
-        
+        self.val_accuracy_history = []
+
+        n_samples = X.shape[0]
+        eff_batch = n_samples if (batch_size is None or batch_size >= n_samples) else batch_size
+        use_minibatch = eff_batch < n_samples
+
         for epoch in range(epochs):
-            # Forward pass
-            _, output = self.forward(X)
-            
-            # Compute loss
-            loss = self.compute_loss(y, output)
-            self.loss_history.append(loss)
-            
-            # Compute accuracy
-            predictions = np.argmax(output, axis=1)
-            true_labels = np.argmax(y, axis=1)
-            accuracy = np.mean(predictions == true_labels) * 100
+            # Shuffle data each epoch for mini-batch training
+            if use_minibatch:
+                idx = np.random.permutation(n_samples)
+                X_s, y_s = X[idx], y[idx]
+            else:
+                X_s, y_s = X, y
+
+            # Forward + backward over mini-batches (or full batch)
+            epoch_loss = 0.0
+            n_batches = 0
+            for start in range(0, n_samples, eff_batch):
+                Xb = X_s[start:start + eff_batch]
+                yb = y_s[start:start + eff_batch]
+                self.forward(Xb)
+                epoch_loss += self.compute_loss(yb, self.a2)
+                n_batches += 1
+                self.backward(Xb, yb, learning_rate)
+
+            avg_loss = epoch_loss / n_batches
+            self.loss_history.append(avg_loss)
+
+            # Training accuracy on a subsample (fast for large datasets like MNIST)
+            metric_n = min(5000, n_samples)
+            _, out = self.forward(X[:metric_n])
+            accuracy = np.mean(np.argmax(out, 1) == np.argmax(y[:metric_n], 1)) * 100
             self.accuracy_history.append(accuracy)
-            
-            # Backward pass (update weights)
-            self.backward(X, y, learning_rate)
-            
-            # Print progress
+
+            # Validation accuracy
+            val_acc = None
+            if X_val is not None and y_val is not None:
+                val_acc = self.get_accuracy(X_val, y_val)
+                self.val_accuracy_history.append(val_acc)
+
             if verbose and (epoch % print_every == 0 or epoch == epochs - 1):
-                print(f"Epoch {epoch:5d}/{epochs} | Loss: {loss:.6f} | Accuracy: {accuracy:.1f}%")
-        
+                val_str = f" | Val Acc: {val_acc:.2f}%" if val_acc is not None else ""
+                print(f"Epoch {epoch + 1:4d}/{epochs} | Loss: {avg_loss:.6f} | Train: {accuracy:.1f}%{val_str}")
+
         return self.loss_history, self.accuracy_history
     
     def predict(self, X):

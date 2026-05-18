@@ -3,3 +3,4 @@ matplotlib
 flask
 Pillow
 fpdf2
+scikit-learn

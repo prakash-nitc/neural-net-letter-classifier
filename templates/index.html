@@ -3,321 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TFML Letter Classifier — B, 0, E Recognition</title>
+    <title>Handwritten Digit Recognizer — NumPy Neural Network</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* ========== DESIGN SYSTEM ========== */
         :root {
-            --bg-primary: #0f0f1a;
+            --bg-primary:   #0f0f1a;
             --bg-secondary: #1a1a2e;
-            --bg-card: #16213e;
-            --bg-card-hover: #1a2744;
-            --accent-blue: #4facfe;
-            --accent-purple: #a855f7;
+            --bg-card:      #16213e;
+            --bg-card-hover:#1a2744;
+            --accent-blue:  #4facfe;
+            --accent-purple:#a855f7;
             --accent-green: #22c55e;
-            --accent-orange: #f97316;
             --text-primary: #e8e8f0;
-            --text-secondary: #9ca3af;
+            --text-secondary:#9ca3af;
             --border-color: rgba(255,255,255,0.08);
-            --glow-blue: rgba(79, 172, 254, 0.3);
-            --glow-purple: rgba(168, 85, 247, 0.3);
+            --glow-blue:    rgba(79,172,254,0.3);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin:0; padding:0; box-sizing:border-box; }
 
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
+            font-family:'Inter',-apple-system,sans-serif;
+            background:var(--bg-primary);
+            color:var(--text-primary);
+            min-height:100vh;
+            overflow-x:hidden;
         }
 
-        /* ========== BACKGROUND EFFECT ========== */
         .bg-glow {
-            position: fixed;
-            width: 500px;
-            height: 500px;
-            border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.15;
-            pointer-events: none;
-            z-index: 0;
+            position:fixed; width:500px; height:500px; border-radius:50%;
+            filter:blur(120px); opacity:0.13; pointer-events:none; z-index:0;
         }
-        .bg-glow-1 { top: -100px; left: -100px; background: var(--accent-blue); }
-        .bg-glow-2 { bottom: -100px; right: -100px; background: var(--accent-purple); }
+        .bg-glow-1 { top:-100px;    left:-100px;  background:var(--accent-blue); }
+        .bg-glow-2 { bottom:-100px; right:-100px; background:var(--accent-purple); }
 
-        /* ========== HEADER ========== */
         header {
-            text-align: center;
-            padding: 2.5rem 1rem 1.5rem;
-            position: relative;
-            z-index: 1;
+            text-align:center; padding:2.5rem 1rem 1.2rem;
+            position:relative; z-index:1;
         }
         header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.4rem;
+            font-size:2rem; font-weight:700;
+            background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            margin-bottom:0.35rem;
         }
-        header p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
+        header p { color:var(--text-secondary); font-size:0.9rem; }
+        .badge-row {
+            display:flex; justify-content:center; gap:0.5rem;
+            flex-wrap:wrap; margin-top:0.75rem;
         }
+        .badge {
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.1);
+            border-radius:999px; padding:0.25rem 0.75rem;
+            font-size:0.75rem; color:var(--text-secondary);
+        }
+        .badge span { color:var(--accent-blue); }
 
-        /* ========== LAYOUT ========== */
         .container {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 1rem 1.5rem 3rem;
-            position: relative;
-            z-index: 1;
+            max-width:980px; margin:0 auto;
+            padding:0.5rem 1.5rem 3rem;
+            position:relative; z-index:1;
         }
         .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin-top: 1.5rem;
+            display:grid; grid-template-columns:1fr 1fr;
+            gap:1.5rem; margin-top:1.2rem;
         }
 
-        /* ========== CARDS ========== */
         .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
+            background:var(--bg-card);
+            border:1px solid var(--border-color);
+            border-radius:16px; padding:1.5rem;
+            transition:all 0.3s ease;
         }
         .card:hover {
-            background: var(--bg-card-hover);
-            border-color: rgba(79, 172, 254, 0.2);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            background:var(--bg-card-hover);
+            border-color:rgba(79,172,254,0.2);
+            box-shadow:0 8px 32px rgba(0,0,0,0.3);
         }
         .card-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .card-title .icon {
-            font-size: 1.2rem;
+            font-size:1rem; font-weight:600;
+            margin-bottom:1rem;
+            display:flex; align-items:center; gap:0.5rem;
         }
 
-        /* ========== TABS ========== */
-        .tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.2rem;
-        }
+        .tabs { display:flex; gap:0.5rem; margin-bottom:1.2rem; }
         .tab-btn {
-            flex: 1;
-            padding: 0.6rem;
-            border: 1px solid var(--border-color);
-            background: transparent;
-            color: var(--text-secondary);
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.2s;
+            flex:1; padding:0.6rem;
+            border:1px solid var(--border-color);
+            background:transparent; color:var(--text-secondary);
+            border-radius:10px; cursor:pointer;
+            font-family:inherit; font-size:0.85rem; font-weight:500;
+            transition:all 0.2s;
         }
         .tab-btn.active {
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            color: white;
-            border-color: transparent;
+            background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));
+            color:white; border-color:transparent;
         }
-        .tab-btn:hover:not(.active) {
-            border-color: var(--accent-blue);
-            color: var(--text-primary);
-        }
-        .tab-pane { display: none; }
-        .tab-pane.active { display: block; }
+        .tab-btn:hover:not(.active) { border-color:var(--accent-blue); color:var(--text-primary); }
+        .tab-pane { display:none; }
+        .tab-pane.active { display:block; }
 
-        /* ========== FILE UPLOAD ========== */
         .upload-zone {
-            border: 2px dashed var(--border-color);
-            border-radius: 12px;
-            padding: 2rem 1rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
+            border:2px dashed var(--border-color); border-radius:12px;
+            padding:2rem 1rem; text-align:center; cursor:pointer;
+            transition:all 0.3s; position:relative;
         }
         .upload-zone:hover, .upload-zone.dragover {
-            border-color: var(--accent-blue);
-            background: rgba(79, 172, 254, 0.05);
+            border-color:var(--accent-blue);
+            background:rgba(79,172,254,0.05);
         }
-        .upload-zone .icon-upload { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .upload-zone p { color: var(--text-secondary); font-size: 0.85rem; }
-        .upload-zone input { display: none; }
+        .upload-zone .icon-upload { font-size:2.5rem; margin-bottom:0.5rem; }
+        .upload-zone p { color:var(--text-secondary); font-size:0.85rem; }
+        .upload-zone input { display:none; }
 
         .preview-img {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 8px;
-            margin-top: 1rem;
-            display: none;
+            max-width:100%; max-height:180px;
+            border-radius:8px; margin-top:1rem; display:none;
         }
 
-        /* ========== CANVAS ========== */
-        .canvas-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .canvas-container { display:flex; flex-direction:column; align-items:center; }
         canvas#drawCanvas {
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            cursor: crosshair;
-            background: white;
-            width: 250px;
-            height: 250px;
+            border:2px solid var(--border-color); border-radius:12px;
+            cursor:crosshair; background:white;
+            width:260px; height:260px;
         }
-        .canvas-controls {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.75rem;
-        }
+        .canvas-controls { display:flex; gap:0.5rem; margin-top:0.75rem; }
 
-        /* ========== BUTTONS ========== */
         .btn {
-            padding: 0.6rem 1.2rem;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: all 0.2s;
+            padding:0.6rem 1.2rem; border:none; border-radius:10px;
+            cursor:pointer; font-family:inherit;
+            font-size:0.85rem; font-weight:600; transition:all 0.2s;
         }
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-            color: white;
-            width: 100%;
-            padding: 0.8rem;
-            margin-top: 1rem;
-            font-size: 0.95rem;
+            background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));
+            color:white; width:100%; padding:0.8rem;
+            margin-top:1rem; font-size:0.95rem;
         }
-        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--glow-blue); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-primary:hover { transform:translateY(-1px); box-shadow:0 4px 20px var(--glow-blue); }
+        .btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none; }
         .btn-secondary {
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
+            background:var(--bg-secondary); color:var(--text-secondary);
+            border:1px solid var(--border-color);
         }
-        .btn-secondary:hover { color: var(--text-primary); border-color: var(--accent-blue); }
+        .btn-secondary:hover { color:var(--text-primary); border-color:var(--accent-blue); }
 
-        /* ========== RESULTS ========== */
-        .result-section { display: none; }
-        .result-section.show { display: block; }
+        .result-section { display:none; }
+        .result-section.show { display:block; }
 
-        .prediction-display {
-            text-align: center;
-            padding: 1.5rem 0 1rem;
+        .prediction-display { text-align:center; padding:1.2rem 0 0.8rem; }
+        .prediction-digit {
+            font-size:5rem; font-weight:700; line-height:1;
+            background:linear-gradient(135deg,var(--accent-green),var(--accent-blue));
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
         }
-        .prediction-letter {
-            font-size: 4rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1.1;
-        }
-        .prediction-label {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
-        }
+        .prediction-label { color:var(--text-secondary); font-size:0.85rem; margin-top:0.25rem; }
 
-        .confidence-bars {
-            margin-top: 1rem;
-        }
+        /* confidence bars — generated dynamically */
+        .confidence-bars { margin-top:1rem; max-height:290px; overflow-y:auto; }
         .conf-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.75rem;
+            display:flex; align-items:center;
+            gap:0.6rem; margin-bottom:0.5rem;
         }
         .conf-label {
-            width: 30px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            text-align: center;
+            width:22px; font-weight:700;
+            font-size:0.95rem; text-align:center;
+            color:var(--text-primary);
         }
         .conf-bar-bg {
-            flex: 1;
-            height: 28px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
+            flex:1; height:24px;
+            background:var(--bg-secondary);
+            border-radius:6px; overflow:hidden;
         }
         .conf-bar-fill {
-            height: 100%;
-            border-radius: 8px;
-            transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-            display: flex;
-            align-items: center;
-            padding-left: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: white;
+            height:100%; border-radius:6px;
+            transition:width 0.55s cubic-bezier(0.22,1,0.36,1);
+            display:flex; align-items:center;
+            padding-left:0.45rem;
+            font-size:0.72rem; font-weight:600; color:white;
+            min-width:0;
         }
-        .conf-bar-fill.letter-b { background: linear-gradient(90deg, #4facfe, #00f2fe); }
-        .conf-bar-fill.letter-0 { background: linear-gradient(90deg, #a855f7, #ec4899); }
-        .conf-bar-fill.letter-e { background: linear-gradient(90deg, #22c55e, #84cc16); }
+
+        /* 10 distinct gradient colours for digits 0-9 */
+        .digit-0 { background:linear-gradient(90deg,#4facfe,#00f2fe); }
+        .digit-1 { background:linear-gradient(90deg,#a855f7,#ec4899); }
+        .digit-2 { background:linear-gradient(90deg,#22c55e,#84cc16); }
+        .digit-3 { background:linear-gradient(90deg,#f97316,#eab308); }
+        .digit-4 { background:linear-gradient(90deg,#06b6d4,#6366f1); }
+        .digit-5 { background:linear-gradient(90deg,#f43f5e,#ec4899); }
+        .digit-6 { background:linear-gradient(90deg,#10b981,#06b6d4); }
+        .digit-7 { background:linear-gradient(90deg,#8b5cf6,#a855f7); }
+        .digit-8 { background:linear-gradient(90deg,#f59e0b,#f97316); }
+        .digit-9 { background:linear-gradient(90deg,#3b82f6,#6366f1); }
 
         .preprocessed-section {
-            text-align: center;
-            margin-top: 1.2rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
+            text-align:center; margin-top:1.2rem; padding-top:1rem;
+            border-top:1px solid var(--border-color);
         }
         .preprocessed-section img {
-            image-rendering: pixelated;
-            width: 96px;
-            height: 96px;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+            image-rendering:pixelated;
+            width:112px; height:112px;
+            border-radius:8px; border:1px solid var(--border-color);
         }
-        .preprocessed-section p {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            margin-top: 0.4rem;
-        }
+        .preprocessed-section p { color:var(--text-secondary); font-size:0.78rem; margin-top:0.4rem; }
 
-        /* ========== LOADING ========== */
         .spinner {
-            display: none;
-            width: 36px;
-            height: 36px;
-            border: 3px solid var(--border-color);
-            border-top: 3px solid var(--accent-blue);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 1rem auto;
+            display:none; width:36px; height:36px;
+            border:3px solid var(--border-color);
+            border-top:3px solid var(--accent-blue);
+            border-radius:50%;
+            animation:spin 0.8s linear infinite;
+            margin:1rem auto;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin { to { transform:rotate(360deg); } }
 
-        /* ========== INFO FOOTER ========== */
         .info-footer {
-            text-align: center;
-            margin-top: 2rem;
-            padding: 1rem;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
+            text-align:center; margin-top:2rem; padding:1rem;
+            color:var(--text-secondary); font-size:0.8rem;
         }
-        .info-footer span { color: var(--accent-blue); }
+        .info-footer span { color:var(--accent-blue); }
 
-        /* ========== RESPONSIVE ========== */
-        @media (max-width: 700px) {
-            .grid { grid-template-columns: 1fr; }
-            header h1 { font-size: 1.5rem; }
+        @media (max-width:700px) {
+            .grid { grid-template-columns:1fr; }
+            header h1 { font-size:1.5rem; }
         }
     </style>
 </head>
@@ -326,27 +234,33 @@
     <div class="bg-glow bg-glow-2"></div>
 
     <header>
-        <h1>🔤 Letter Classifier</h1>
-        <p>Neural Network (64-16-3) trained to classify B, 0, and E</p>
+        <h1>Handwritten Digit Recognizer</h1>
+        <p>Neural network trained on 60,000 MNIST samples — built entirely from scratch in NumPy</p>
+        <div class="badge-row">
+            <div class="badge"><span>784</span> inputs</div>
+            <div class="badge"><span>128</span> hidden neurons</div>
+            <div class="badge"><span>10</span> digit classes</div>
+            <div class="badge">No PyTorch. No TensorFlow. <span>Pure NumPy.</span></div>
+        </div>
     </header>
 
     <div class="container">
         <div class="grid">
+
             <!-- INPUT CARD -->
             <div class="card">
-                <div class="card-title"><span class="icon">📥</span> Input</div>
+                <div class="card-title">&#x1F4E5; Input</div>
 
-                <!-- Tabs -->
                 <div class="tabs">
                     <button class="tab-btn active" onclick="switchTab('upload')" id="tab-upload">Upload Image</button>
-                    <button class="tab-btn" onclick="switchTab('draw')" id="tab-draw">Draw on Canvas</button>
+                    <button class="tab-btn"         onclick="switchTab('draw')"   id="tab-draw">Draw on Canvas</button>
                 </div>
 
                 <!-- Upload Tab -->
                 <div class="tab-pane active" id="pane-upload">
                     <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-                        <div class="icon-upload">📁</div>
-                        <p><strong>Click to upload</strong> or drag & drop</p>
+                        <div class="icon-upload">&#x1F4C1;</div>
+                        <p><strong>Click to upload</strong> or drag &amp; drop</p>
                         <p>PNG, JPG, BMP — any size</p>
                         <input type="file" id="fileInput" accept="image/*">
                     </div>
@@ -356,92 +270,73 @@
                 <!-- Draw Tab -->
                 <div class="tab-pane" id="pane-draw">
                     <div class="canvas-container">
-                        <canvas id="drawCanvas" width="250" height="250"></canvas>
+                        <canvas id="drawCanvas" width="260" height="260"></canvas>
                         <div class="canvas-controls">
-                            <button class="btn btn-secondary" onclick="clearCanvas()">🗑 Clear</button>
+                            <button class="btn btn-secondary" onclick="clearCanvas()">&#x1F5D1; Clear</button>
                         </div>
-                        <p style="color:var(--text-secondary); font-size:0.75rem; margin-top:0.5rem;">Tip: Draw the letter large, filling the canvas</p>
+                        <p style="color:var(--text-secondary);font-size:0.75rem;margin-top:0.5rem;">
+                            Draw a digit (0-9) large, filling the canvas
+                        </p>
                     </div>
                 </div>
 
                 <button class="btn btn-primary" id="predictBtn" onclick="predict()" disabled>
-                    ⚡ Classify Letter
+                    &#x26A1; Classify Digit
                 </button>
                 <div class="spinner" id="spinner"></div>
             </div>
 
             <!-- RESULT CARD -->
             <div class="card">
-                <div class="card-title"><span class="icon">📊</span> Prediction</div>
+                <div class="card-title">&#x1F4CA; Prediction</div>
 
                 <div class="result-section" id="resultSection">
                     <div class="prediction-display">
-                        <div class="prediction-letter" id="predLetter">—</div>
-                        <div class="prediction-label">Predicted Letter</div>
+                        <div class="prediction-digit" id="predDigit">—</div>
+                        <div class="prediction-label">Predicted Digit</div>
                     </div>
 
-                    <div class="confidence-bars" id="confBars">
-                        <div class="conf-item">
-                            <span class="conf-label">B</span>
-                            <div class="conf-bar-bg">
-                                <div class="conf-bar-fill letter-b" id="conf-B" style="width:0%"></div>
-                            </div>
-                        </div>
-                        <div class="conf-item">
-                            <span class="conf-label">0</span>
-                            <div class="conf-bar-bg">
-                                <div class="conf-bar-fill letter-0" id="conf-0" style="width:0%"></div>
-                            </div>
-                        </div>
-                        <div class="conf-item">
-                            <span class="conf-label">E</span>
-                            <div class="conf-bar-bg">
-                                <div class="conf-bar-fill letter-e" id="conf-E" style="width:0%"></div>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="confidence-bars" id="confBars"></div>
 
                     <div class="preprocessed-section">
-                        <img id="preprocImg" alt="Preprocessed 8x8">
-                        <p>Preprocessed 8×8 input fed to the network</p>
+                        <img id="preprocImg" alt="28x28 input">
+                        <p>28&times;28 input fed to the network</p>
                     </div>
                 </div>
 
-                <div id="placeholder" style="text-align:center; padding:3rem 0; color:var(--text-secondary);">
-                    <div style="font-size:3rem; margin-bottom:0.5rem;">🧠</div>
-                    <p>Upload or draw a letter to see the prediction</p>
+                <div id="placeholder" style="text-align:center;padding:3rem 0;color:var(--text-secondary);">
+                    <div style="font-size:3rem;margin-bottom:0.5rem;">&#x1F9E0;</div>
+                    <p>Upload or draw a digit to see the prediction</p>
                 </div>
             </div>
+
         </div>
 
         <div class="info-footer">
-            <span>CS6302E</span> — Theoretical Foundations of Machine Learning · NIT Calicut · Winter 2026
+            <span>NIT Calicut</span> &mdash;
+            From-scratch neural network: backpropagation, Xavier init, mini-batch SGD &mdash; all implemented in NumPy
         </div>
     </div>
 
     <script>
-        // ========== TAB SWITCHING ==========
+        // ── Tab switching ────────────────────────────────────────────────────
         function switchTab(tab) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
             document.getElementById('tab-' + tab).classList.add('active');
             document.getElementById('pane-' + tab).classList.add('active');
-            
-            // Enable predict button if canvas tab is selected
-            if (tab === 'draw') {
-                document.getElementById('predictBtn').disabled = false;
-            }
+            if (tab === 'draw') document.getElementById('predictBtn').disabled = false;
         }
 
-        // ========== FILE UPLOAD ==========
-        const fileInput = document.getElementById('fileInput');
+        // ── File upload ──────────────────────────────────────────────────────
+        const fileInput  = document.getElementById('fileInput');
         const uploadZone = document.getElementById('uploadZone');
         const previewImg = document.getElementById('previewImg');
 
-        fileInput.addEventListener('change', (e) => {
+        fileInput.addEventListener('change', e => {
             if (e.target.files.length > 0) {
                 const reader = new FileReader();
-                reader.onload = (ev) => {
+                reader.onload = ev => {
                     previewImg.src = ev.target.result;
                     previewImg.style.display = 'block';
                     document.getElementById('predictBtn').disabled = false;
@@ -450,168 +345,137 @@
             }
         });
 
-        // Drag and drop support
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.classList.add('dragover');
+        uploadZone.addEventListener('dragover', e => {
+            e.preventDefault(); uploadZone.classList.add('dragover');
         });
         uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
+        uploadZone.addEventListener('drop', e => {
+            e.preventDefault(); uploadZone.classList.remove('dragover');
             if (e.dataTransfer.files.length > 0) {
                 fileInput.files = e.dataTransfer.files;
                 fileInput.dispatchEvent(new Event('change'));
             }
         });
 
-        // ========== CANVAS DRAWING ==========
+        // ── Canvas drawing ───────────────────────────────────────────────────
         const canvas = document.getElementById('drawCanvas');
-        const ctx = canvas.getContext('2d');
-        let drawing = false;
-        let lastX = 0;
-        let lastY = 0;
+        const ctx    = canvas.getContext('2d');
+        let drawing = false, lastX = 0, lastY = 0;
 
-        // Set up drawing style
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 20;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        // Initialize white canvas
+        ctx.strokeStyle = 'black'; ctx.lineWidth = 18;
+        ctx.lineCap = 'round';     ctx.lineJoin = 'round';
         clearCanvas();
 
-        function getCanvasPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            return [
-                (e.clientX - rect.left) * scaleX,
-                (e.clientY - rect.top) * scaleY
-            ];
+        function getPos(e) {
+            const r = canvas.getBoundingClientRect();
+            return [(e.clientX - r.left) * canvas.width  / r.width,
+                    (e.clientY - r.top)  * canvas.height / r.height];
         }
-
         function getTouchPos(e) {
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            return [
-                (touch.clientX - rect.left) * scaleX,
-                (touch.clientY - rect.top) * scaleY
-            ];
+            const t = e.touches[0], r = canvas.getBoundingClientRect();
+            return [(t.clientX - r.left) * canvas.width  / r.width,
+                    (t.clientY - r.top)  * canvas.height / r.height];
         }
 
-        canvas.addEventListener('mousedown', (e) => {
-            drawing = true;
-            [lastX, lastY] = getCanvasPos(e);
-            // Draw a dot for single clicks
-            ctx.beginPath();
-            ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, Math.PI * 2);
-            ctx.fillStyle = 'black';
-            ctx.fill();
+        canvas.addEventListener('mousedown', e => {
+            drawing = true; [lastX, lastY] = getPos(e);
+            ctx.beginPath(); ctx.arc(lastX, lastY, ctx.lineWidth/2, 0, Math.PI*2);
+            ctx.fillStyle = 'black'; ctx.fill();
         });
-
-        canvas.addEventListener('mousemove', (e) => {
+        canvas.addEventListener('mousemove', e => {
             if (!drawing) return;
-            const [x, y] = getCanvasPos(e);
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
+            const [x, y] = getPos(e);
+            ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y); ctx.stroke();
             [lastX, lastY] = [x, y];
         });
-
-        canvas.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('mouseup',    () => drawing = false);
         canvas.addEventListener('mouseleave', () => drawing = false);
 
-        // Touch support
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            drawing = true;
-            [lastX, lastY] = getTouchPos(e);
-            ctx.beginPath();
-            ctx.arc(lastX, lastY, ctx.lineWidth / 2, 0, Math.PI * 2);
-            ctx.fillStyle = 'black';
-            ctx.fill();
-        });
-
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (!drawing) return;
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault(); drawing = true; [lastX, lastY] = getTouchPos(e);
+            ctx.beginPath(); ctx.arc(lastX, lastY, ctx.lineWidth/2, 0, Math.PI*2);
+            ctx.fillStyle = 'black'; ctx.fill();
+        }, {passive:false});
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault(); if (!drawing) return;
             const [x, y] = getTouchPos(e);
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(x, y);
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y); ctx.stroke();
             [lastX, lastY] = [x, y];
-        });
-
+        }, {passive:false});
         canvas.addEventListener('touchend', () => drawing = false);
 
         function clearCanvas() {
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            // Restore drawing style after clear
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 20;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
+            ctx.fillStyle = 'white'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'black'; ctx.lineWidth = 18;
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round';
         }
 
-        // ========== PREDICTION ==========
+        // ── Confidence bars (generated dynamically for 10 digits) ────────────
+        function renderConfidenceBars(confidence) {
+            const container = document.getElementById('confBars');
+            container.innerHTML = '';
+
+            // Sort by confidence descending so the top prediction is first
+            const sorted = Object.entries(confidence)
+                .sort((a, b) => b[1] - a[1]);
+
+            const total = sorted.reduce((s, [, v]) => s + v, 0) || 1;
+
+            sorted.forEach(([digit, score]) => {
+                const pct = (score / total * 100).toFixed(1);
+                const item = document.createElement('div');
+                item.className = 'conf-item';
+                item.innerHTML = `
+                    <span class="conf-label">${digit}</span>
+                    <div class="conf-bar-bg">
+                        <div class="conf-bar-fill digit-${digit}" id="conf-${digit}" style="width:0%"></div>
+                    </div>`;
+                container.appendChild(item);
+            });
+
+            // Animate after a short tick so the transition triggers
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                sorted.forEach(([digit, score]) => {
+                    const pct = (score / total * 100).toFixed(1);
+                    const bar = document.getElementById('conf-' + digit);
+                    if (bar) { bar.style.width = pct + '%'; bar.textContent = pct + '%'; }
+                });
+            }));
+        }
+
+        // ── Prediction ───────────────────────────────────────────────────────
         async function predict() {
             const spinner = document.getElementById('spinner');
-            const btn = document.getElementById('predictBtn');
+            const btn     = document.getElementById('predictBtn');
             spinner.style.display = 'block';
             btn.disabled = true;
 
             try {
-                let response;
-                // Check which tab is active
                 const isDrawTab = document.getElementById('tab-draw').classList.contains('active');
+                let response;
 
                 if (isDrawTab) {
-                    // Send canvas as base64
-                    const dataUrl = canvas.toDataURL('image/png');
                     response = await fetch('/predict_canvas', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ image: dataUrl })
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({image: canvas.toDataURL('image/png')})
                     });
                 } else {
-                    // Send uploaded file
                     const file = fileInput.files[0];
                     if (!file) { alert('Please select an image first.'); return; }
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    response = await fetch('/predict', {
-                        method: 'POST',
-                        body: formData
-                    });
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    response = await fetch('/predict', {method:'POST', body:fd});
                 }
 
                 const data = await response.json();
+                if (data.error) { alert('Error: ' + data.error); return; }
 
-                if (data.error) {
-                    alert('Error: ' + data.error);
-                    return;
-                }
-
-                // Show results
                 document.getElementById('placeholder').style.display = 'none';
                 document.getElementById('resultSection').classList.add('show');
-                document.getElementById('predLetter').textContent = data.prediction;
+                document.getElementById('predDigit').textContent = data.prediction;
                 document.getElementById('preprocImg').src = data.preprocessed_image;
-
-                // Animate confidence bars
-                const total = Object.values(data.confidence).reduce((a, b) => a + b, 0);
-                ['B', '0', 'E'].forEach(cls => {
-                    const pct = (data.confidence[cls] / total * 100).toFixed(1);
-                    const bar = document.getElementById('conf-' + cls);
-                    bar.style.width = pct + '%';
-                    bar.textContent = pct + '%';
-                });
+                renderConfidenceBars(data.confidence);
 
             } catch (err) {
                 alert('Request failed: ' + err.message);
