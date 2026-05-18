@@ -1,262 +1,293 @@
 <p align="center">
-  <h1 align="center">🧠 Neural Net Letter Classifier</h1>
+  <h1 align="center">Deep Learning Framework — From Scratch in NumPy</h1>
   <p align="center">
-    <strong>A from-scratch neural network built entirely in NumPy — no TensorFlow, no PyTorch.</strong><br/>
-    Classifies handwritten letters <b>B</b>, <b>0</b> (zero), and <b>E</b> from noisy 8×8 pixel images.
+    <strong>A modular, N-layer neural network framework built entirely without PyTorch or TensorFlow.</strong><br/>
+    Implements backpropagation, Adam optimizer, multiple activations, gradient verification,<br/>
+    and benchmarks on MNIST (97.66%) and CIFAR-10 (52%) — all in pure NumPy.
   </p>
   <p align="center">
     <img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
     <img src="https://img.shields.io/badge/NumPy-Pure_Implementation-013243?style=for-the-badge&logo=numpy&logoColor=white" />
+    <img src="https://img.shields.io/badge/MNIST-97.66%25_Accuracy-22c55e?style=for-the-badge" />
+    <img src="https://img.shields.io/badge/CIFAR--10-52%25_MLP_Ceiling-f97316?style=for-the-badge" />
     <img src="https://img.shields.io/badge/Flask-Web_App-000000?style=for-the-badge&logo=flask&logoColor=white" />
-    <img src="https://img.shields.io/badge/ML-From_Scratch-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white" />
   </p>
 </p>
 
 ---
 
-## ✨ Why This Project Stands Out
+## What This Is
 
-| What | Why It Matters |
-|------|---------------|
-| 🔧 **Built from scratch** | Every component — forward pass, backpropagation, gradient descent — is implemented manually. No `model.fit()` magic. |
-| 📐 **Math-first approach** | Xavier initialization, sigmoid derivatives, MSE gradients — all derived and coded by hand. |
-| 🔍 **Architecture search** | Systematically tested 9 different architectures (X ∈ {1–32}) with statistical robustness (5 trials each). |
-| 📊 **Sample complexity analysis** | Studied how training set size affects generalization across architectures. |
-| 🌐 **End-to-end web app** | Not just a notebook — includes a Flask app with image upload, canvas drawing, and real-time prediction. |
-| 📈 **Rich visualizations** | Weight heatmaps, confusion matrices, convergence plots, and architecture comparison charts. |
+Most ML courses teach you to call `model.fit()`. This project implements what happens **inside** — from the chain rule to the Adam update rule — in a framework flexible enough to train on real image benchmarks.
+
+The core class `DeepNeuralNetwork` accepts any architecture (`[784, 256, 128, 10]` or any depth), any activation, any loss, and any optimizer — configured at construction time, just like PyTorch modules.
 
 ---
 
-## 🎯 Project Overview
+## Framework Features
 
-This project tackles a **3-class character recognition problem** using a single hidden-layer feedforward neural network. The characters B, 0, and E are represented as 8×8 binary pixel grids, corrupted with heavy uniform noise, and classified using a network trained entirely via backpropagation.
-
-### The Pipeline
-
-```mermaid
-graph LR
-    A[8×8 Letter<br/>Templates] --> B[Add Uniform<br/>Noise ±5.0]
-    B --> C[300 Training<br/>Samples]
-    C --> D[Neural Network<br/>64-X-3]
-    D --> E[Backpropagation<br/>+ Gradient Descent]
-    E --> F[Trained<br/>Classifier]
-    F --> G[Web App<br/>Predict]
-```
+| Capability | Details |
+|---|---|
+| **Arbitrary depth** | `layer_sizes=[784, 256, 128, 64, 10]` — any N-layer network |
+| **Activations** | ReLU, Sigmoid, Tanh (hidden); Softmax / Sigmoid (output) |
+| **Loss functions** | Cross-entropy + Softmax, MSE + Sigmoid |
+| **Optimizer** | Adam (β₁=0.9, β₂=0.999) with bias correction; SGD fallback |
+| **Initialization** | He (ReLU layers), Xavier (Sigmoid/Tanh layers) |
+| **Regularization** | L2 weight decay |
+| **Gradient check** | Numerical verification via centered finite differences |
+| **Mini-batch training** | Shuffle + batch loop, val accuracy tracked per epoch |
+| **Persistence** | Save / load weights to `.npz` |
 
 ---
 
-## 🏗️ Network Architecture
+## Benchmarks
 
-```
-Input Layer (64 neurons)          Hidden Layer (X neurons)          Output Layer (3 neurons)
-┌─────────────────────┐          ┌──────────────────┐              ┌──────────────┐
-│                     │          │                  │              │              │
-│  8×8 pixel image    │── W1 ──▶│  Sigmoid units   │── W2 ──────▶│  B  (σ)      │
-│  flattened to 64    │  + b1   │  Xavier init     │   + b2       │  0  (σ)      │
-│  features           │         │                  │              │  E  (σ)      │
-│                     │         │                  │              │              │
-└─────────────────────┘         └──────────────────┘              └──────────────┘
-```
+### MNIST — Handwritten Digits (60K samples, 10 classes)
 
-### Key Implementation Details
+> Architecture: 784 → 128 → 10 · Adam lr=0.001 · 30 epochs
 
-<table>
-<tr>
-<td width="50%">
-
-**Forward Pass**
-```
-z₁ = X · W₁ + b₁
-a₁ = σ(z₁)
-z₂ = a₁ · W₂ + b₂
-a₂ = σ(z₂)    ← predictions
-```
-
-</td>
-<td width="50%">
-
-**Backward Pass (Backpropagation)**
-```
-δ₂ = (a₂ − y) ⊙ σ'(z₂)
-δ₁ = (δ₂ · W₂ᵀ) ⊙ σ'(z₁)
-∇W₂ = a₁ᵀ · δ₂ / n
-∇W₁ = Xᵀ · δ₁  / n
-```
-
-</td>
-</tr>
-</table>
-
-- **Activation**: Sigmoid with overflow clipping at ±500
-- **Loss**: Mean Squared Error (MSE)
-- **Optimizer**: Full-batch gradient descent (lr = 0.5)
-- **Initialization**: Xavier/Glorot — `W ~ N(0, √(2/(fan_in + fan_out)))`
-
----
-
-## 📊 Results
-
-### Training Performance (64-3-3 Network)
+| Metric | Value |
+|---|---|
+| Test accuracy | **97.66%** |
+| Train accuracy | 99.61% |
+| Parameters | 101,770 |
+| Random baseline | 10.00% |
 
 <p align="center">
-  <img src="results/training_curves.png" width="80%" alt="Training loss and accuracy curves"/>
+  <img src="results/mnist_training_curves.png" width="88%" alt="MNIST training loss and test accuracy per epoch"/>
 </p>
 
-### What Each Hidden Neuron Learned (Weight Visualization)
+**Hidden unit weight maps** — each of the 128 neurons learns to detect specific digit strokes:
 
 <p align="center">
-  <img src="results/input_hidden_weights.png" width="80%" alt="Input to hidden weight maps"/>
+  <img src="results/mnist_weight_maps.png" width="80%" alt="Hidden neuron weights reshaped to 28x28"/>
 </p>
 
-> Each hidden unit's 64 weights reshaped as 8×8 reveal the spatial pattern it detects — vertical strokes, horizontal bars, or curved regions that distinguish B from E and 0.
-
-### Decision Logic (Hidden → Output Weights)
-
 <p align="center">
-  <img src="results/hidden_output_weights.png" width="80%" alt="Hidden to output weight heatmap and bar chart"/>
-</p>
-
-### Classification Accuracy
-
-<p align="center">
-  <img src="results/confusion_matrix.png" width="45%" alt="Confusion matrix"/>
+  <img src="results/mnist_confusion_matrix.png" width="55%" alt="MNIST confusion matrix — 10,000 test samples"/>
+  &nbsp;&nbsp;
+  <img src="results/mnist_sample_predictions.png" width="38%" alt="Sample predictions — green correct, red wrong"/>
 </p>
 
 ---
 
-## 🔍 Architecture Search
+### CIFAR-10 — Colour Images (50K samples, 10 classes)
 
-Tested **9 architectures** (X ∈ {1, 2, 3, 4, 5, 8, 10, 16, 32}) with 5 random initializations each to find the optimal hidden layer size.
+> Architecture: 3072 → 512 → 256 → 10 · Adam lr=0.001 · 40 epochs · per-channel normalisation
+
+| Metric | Value |
+|---|---|
+| Test accuracy | **50.95%** |
+| Train accuracy | 95.38% (overfits) |
+| Random baseline | 10.00% |
+| Typical CNN | ~93% |
+
+Best classes: ship 68.6%, automobile 61.4%. Worst: bird 36.1%, cat 36.6% — animals have far more pose/texture variation than vehicles, which a pixel-level model cannot capture.
 
 <p align="center">
-  <img src="results/architecture_search.png" width="85%" alt="Architecture search results"/>
+  <img src="results/cifar10_training_curves.png" width="88%" alt="CIFAR-10 training curves"/>
 </p>
 
 <p align="center">
-  <img src="results/accuracy_convergence.png" width="70%" alt="Accuracy convergence comparison"/>
+  <img src="results/cifar10_confusion_matrix.png" width="55%" alt="CIFAR-10 confusion matrix"/>
+  &nbsp;&nbsp;
+  <img src="results/cifar10_sample_predictions.png" width="38%" alt="CIFAR-10 sample predictions"/>
 </p>
 
-### Sample Complexity
+**Why does the MLP plateau at ~51% on CIFAR-10?**  
+An MLP treats every pixel independently — it has no notion of spatial structure. A CNN uses local filters (weight sharing) to detect edges and textures at any position in the image, which is why CNNs reach 93%+. This experiment makes the architectural gap concrete and measurable.
 
-How many training samples does each architecture need to generalize?
+---
+
+### Architecture Search — MNIST
+
+Systematic sweep over hidden-layer sizes {16, 32, 64, 128, 256, 512}, 2 trials each. Accuracy is always measured on the **held-out test set** (not training set).
+
+| Hidden size | Parameters | Mean test acc | Best |
+|---|---|---|---|
+| 16  | 12,730  | 93.07% ± 0.70% | 93.77% |
+| 32  | 25,450  | 94.96% ± 0.05% | 95.01% |
+| 64  | 50,890  | 96.84% ± 0.04% | 96.87% |
+| 128 | 101,770 | 97.69% ± 0.02% | 97.72% |
+| **256** | **203,530** | **97.94% ± 0.11%** | **98.04%** |
+| 512 | 407,050 | 97.60% ± 0.11% | 97.71% |
+
+Accuracy rises with capacity up to 256 units, then **drops** at 512 — more parameters is not always better (overfitting). 128 is the sweet spot: near-best accuracy at half the parameters of 256.
 
 <p align="center">
-  <img src="results/sample_complexity.png" width="85%" alt="Sample complexity curves"/>
+  <img src="results/mnist_architecture_search.png" width="88%" alt="MNIST architecture search results"/>
 </p>
 
 ---
 
-## 🌐 Web Application
+## Gradient Verification
 
-A **Flask web app** that lets you upload an image or draw directly on a canvas, then classifies the letter in real-time.
-
-### Features
-- 📁 **Image upload** — drag & drop or click to browse (PNG, JPG, BMP)
-- ✏️ **Canvas drawing** — draw with mouse or touch, then classify
-- 🔄 **Smart preprocessing** — auto-crop, resize to 8×8, normalize
-- 📊 **Confidence bars** — animated per-class probability visualization
-- 🖼️ **Preprocessed preview** — see exactly what the network sees
-- 📱 **Responsive design** — works on desktop and mobile
-
-### Preprocessing Pipeline
+Backpropagation correctness is verified against numerical gradients computed via centered finite differences:
 
 ```
-Upload/Draw → Grayscale → Binary threshold → Crop to bounding box
-→ Resize to 7×7 → Place in 8×8 grid with padding → Normalize to [-1, +1]
-→ Flatten to 64-dim vector → Feed to network
+dL/dw  ≈  [ L(w + eps) - L(w - eps) ] / (2 * eps)
 ```
 
----
-
-## 📁 Project Structure
+All 3 configurations pass with relative error ~1e-10:
 
 ```
-neural-net-letter-classifier/
-│
-├── data_generation.py          # 8×8 letter templates + noisy dataset generation
-├── neural_network.py           # NeuralNetwork class — forward, backward, train, predict
-├── train_and_visualize.py      # Training + weight visualization (Parts a, b, c)
-├── architecture_search.py      # Hidden-unit sweep + sample complexity (Part e)
-├── app.py                      # Flask web application (Part d)
-│
-├── templates/
-│   └── index.html              # Web UI — upload, canvas draw, confidence display
-│
-├── model/
-│   ├── model_64_3_3.npz        # Trained 64-3-3 network weights
-│   └── model_64_16_3.npz       # Trained 64-16-3 network weights (web app)
-│
-├── results/
-│   ├── training_curves.png
-│   ├── confusion_matrix.png
-│   ├── input_hidden_weights.png
-│   ├── hidden_output_weights.png
-│   ├── architecture_search.png
-│   ├── accuracy_convergence.png
-│   ├── sample_complexity.png
-│   ├── templates.png
-│   ├── noisy_samples.png
-│   └── TFML_Assignment_Report.pdf
-│
-├── requirements.txt
-└── README.md
+--- Test 1: ReLU + Cross-Entropy  [6, 5, 4, 3] ---
+  Layer  Param   Rel Error    Status
+  1      W1      9.46e-11     PASS
+  1      b1      1.20e-10     PASS
+  2      W2      6.93e-11     PASS
+  ...
+  All gradients verified. Backpropagation is mathematically correct.
+
+--- Test 2: Sigmoid + MSE  [5, 4, 3] ---   PASS
+--- Test 3: Tanh + Cross-Entropy  [8, 6, 4, 2] ---  PASS
 ```
 
----
-
-## 🚀 Quick Start
-
-### 1. Clone & install
-
+Run it yourself:
 ```bash
-git clone https://github.com/prakash-nitc/neural-net-letter-classifier.git
-cd neural-net-letter-classifier
-pip install -r requirements.txt
+python gradient_check.py
 ```
 
-### 2. Train the network & generate visualizations
+---
 
-```bash
-python train_and_visualize.py      # Train 64-3-3 + generate weight plots
-python architecture_search.py     # Run architecture sweep + sample complexity
+## Core Implementation
+
+### N-layer forward pass
+
+```python
+def forward(self, X):
+    self._cache = [X]
+    a = X
+    for i in range(self.n_layers):
+        z  = a @ self.weights[i] + self.biases[i]
+        fn = self.output_activation if i == self.n_layers - 1 else self.activation
+        a  = self._act(z, fn)
+        self._cache.append(a)
+    return a
 ```
 
-### 3. Launch the web app
+### Backpropagation (generalised to N layers)
+
+```python
+# CE + Softmax: combined gradient simplifies to (a - y)/n
+delta = (a_out - y) / n
+
+for i in range(L-1, -1, -1):
+    grads_w[i] = a_prev.T @ delta + (l2/n) * weights[i]
+    grads_b[i] = sum(delta, axis=0)
+    if i > 0:
+        delta = (delta @ weights[i].T) * activation_deriv(cache[i])
+```
+
+### Adam optimizer (with bias correction)
+
+```python
+m[i] = b1 * m[i] + (1 - b1) * grad
+v[i] = b2 * v[i] + (1 - b2) * grad**2
+m_hat = m[i] / (1 - b1**t)
+v_hat = v[i] / (1 - b2**t)
+params[i] -= lr * m_hat / (sqrt(v_hat) + eps)
+```
+
+---
+
+## Web Application
+
+Flask app — draw a digit on the canvas and the trained MNIST network classifies it in real time.
+
+**Preprocessing pipeline:**
+```
+Draw on canvas -> grayscale -> binary threshold -> invert colours
+-> crop to bounding box -> add 20% padding -> resize to 28x28 (LANCZOS)
+-> normalize to [-1, +1] -> flatten to 784-dim vector -> network
+```
 
 ```bash
 python app.py
-# → Open http://127.0.0.1:5000
+# Open http://127.0.0.1:5000
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## Project Structure
 
-| Component | Technology |
-|-----------|-----------|
-| Core ML | NumPy (pure implementation) |
-| Visualization | Matplotlib |
-| Web Framework | Flask |
-| Image Processing | Pillow (PIL) |
-| Frontend | Vanilla HTML/CSS/JS |
-| Report | fpdf2 |
+```
+.
+├── deep_neural_network.py       # Core framework — N-layer, Adam, CE/MSE, save/load
+├── mnist_loader.py              # MNIST loader + [-1,1] normalisation
+├── cifar10_loader.py            # CIFAR-10 downloader + per-channel normalisation
+├── gradient_check.py            # Numerical gradient verification
+├── train_mnist.py               # Train + visualise on MNIST (target ~97%)
+├── train_cifar10.py             # Train + visualise on CIFAR-10 (target ~52%)
+├── architecture_search_mnist.py # Hidden-size sweep — proper held-out evaluation
+├── app.py                       # Flask web app — draw a digit, get a prediction
+│
+├── templates/
+│   └── index.html               # Canvas UI with per-class confidence bars
+│
+├── model/
+│   ├── mnist_dnn_model.npz      # Trained 784-128-10 weights
+│   └── cifar10_model.npz        # Trained 3072-512-256-10 weights
+│
+├── results/
+│   ├── mnist_training_curves.png
+│   ├── mnist_weight_maps.png
+│   ├── mnist_confusion_matrix.png
+│   ├── mnist_sample_predictions.png
+│   ├── mnist_architecture_search.png
+│   ├── cifar10_training_curves.png
+│   ├── cifar10_confusion_matrix.png
+│   └── cifar10_sample_predictions.png
+│
+└── requirements.txt
+```
 
 ---
 
-## 📖 Assignment Context
+## Quick Start
 
-> **CS6302E** — Theoretical Foundations of Machine Learning · NIT Calicut · Winter 2026
+```bash
+pip install -r requirements.txt
 
-| Part | Task | Status |
-|------|------|--------|
-| (a) | Train a 64-3-3 neural network with bias on dataset D | ✅ |
-| (b) | Display input→hidden weights as 8×8 images and interpret | ✅ |
-| (c) | Display hidden→output weights and interpret | ✅ |
-| (d) | Web application for classifying uploaded/drawn letters | ✅ |
-| (e) | Find best architecture + sample complexity analysis | ✅ |
+# Verify backpropagation is correct
+python gradient_check.py
+
+# Train on MNIST (~2 min, downloads ~170 MB first run)
+python train_mnist.py
+
+# Train on CIFAR-10 (~8 min, downloads ~163 MB first run)
+python train_cifar10.py
+
+# Architecture search (~5-8 min)
+python architecture_search_mnist.py
+
+# Web app
+python app.py
+```
+
+---
+
+## Tech Stack
+
+| Component | Technology |
+|---|---|
+| Neural network framework | NumPy (pure from-scratch) |
+| Datasets | MNIST via scikit-learn, CIFAR-10 via urllib |
+| Visualisation | Matplotlib |
+| Web framework | Flask |
+| Image processing | Pillow (PIL) |
+| Frontend | Vanilla HTML / CSS / JS |
+
+---
+
+## Project Origin
+
+Started as a university assignment (CS6302E — Theoretical Foundations of Machine Learning, NIT Calicut) requiring a neural network for 3-class letter recognition on synthetic 8×8 pixel data. The assignment was completed, then the implementation was extended into a reusable framework and validated against MNIST and CIFAR-10 to confirm it works at real scale.
+
+The same backpropagation logic — zero changes — powers both the toy 3-class problem and a 50,000-sample colour-image benchmark.
 
 ---
 
 <p align="center">
-  <sub>Built with ❤️ and pure NumPy — because understanding the fundamentals matters.</sub>
+  <sub>Built without frameworks — because understanding what happens inside <code>model.fit()</code> matters.</sub>
 </p>

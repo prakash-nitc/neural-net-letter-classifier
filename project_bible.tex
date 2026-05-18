@@ -1,0 +1,1098 @@
+\documentclass[12pt, a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────────────
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{fontenc}
+\usepackage{inputenc}
+\usepackage{parskip}
+\usepackage{graphicx}
+\usepackage{mdframed}
+
+% ── Colors ────────────────────────────────────────────────────────────────────
+\definecolor{primaryblue}{RGB}{37, 99, 235}
+\definecolor{lightblue}{RGB}{219, 234, 254}
+\definecolor{primarygreen}{RGB}{22, 163, 74}
+\definecolor{lightgreen}{RGB}{220, 252, 231}
+\definecolor{primaryorange}{RGB}{234, 88, 12}
+\definecolor{lightorange}{RGB}{255, 237, 213}
+\definecolor{codebg}{RGB}{248, 250, 252}
+\definecolor{darkgray}{RGB}{55, 65, 81}
+\definecolor{primaryred}{RGB}{185, 28, 28}
+\definecolor{lightred}{RGB}{254, 226, 226}
+
+% ── Box Styles ────────────────────────────────────────────────────────────────
+\tcbuselibrary{breakable, skins}
+
+\newtcolorbox{conceptbox}[1]{
+  breakable, enhanced,
+  colback=lightblue, colframe=primaryblue,
+  fonttitle=\bfseries\color{primaryblue},
+  title={#1}, arc=4pt
+}
+
+\newtcolorbox{interviewbox}[1]{
+  breakable, enhanced,
+  colback=lightgreen, colframe=primarygreen,
+  fonttitle=\bfseries\color{primarygreen},
+  title={#1}, arc=4pt
+}
+
+\newtcolorbox{warningbox}[1]{
+  breakable, enhanced,
+  colback=lightorange, colframe=primaryorange,
+  fonttitle=\bfseries\color{primaryorange},
+  title={#1}, arc=4pt
+}
+
+\newtcolorbox{keybox}[1]{
+  breakable, enhanced,
+  colback=lightred, colframe=primaryred,
+  fonttitle=\bfseries\color{primaryred},
+  title={#1}, arc=4pt
+}
+
+% ── Code Listings ─────────────────────────────────────────────────────────────
+\lstset{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{darkgray!40},
+  numbers=left,
+  numberstyle=\tiny\color{darkgray!60},
+  keywordstyle=\color{primaryblue}\bfseries,
+  commentstyle=\color{darkgray!70}\itshape,
+  stringstyle=\color{primarygreen},
+  showstringspaces=false,
+  xleftmargin=1.5em,
+  framexleftmargin=1.5em,
+  aboveskip=8pt,
+  belowskip=8pt,
+  language=Python
+}
+
+% ── Section Formatting ────────────────────────────────────────────────────────
+\titleformat{\section}{\Large\bfseries\color{primaryblue}}{}{0em}{}[\color{primaryblue}\titlerule]
+\titleformat{\subsection}{\large\bfseries\color{darkgray}}{}{0em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{darkgray}}{}{0em}{}
+
+% ── Header / Footer ───────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{darkgray} Deep Learning Framework -- Project Bible}
+\fancyhead[R]{\small\color{darkgray} Prakash Kumar Sarangi, NIT Calicut}
+\fancyfoot[C]{\small\color{darkgray} \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Hyperref ──────────────────────────────────────────────────────────────────
+\hypersetup{colorlinks=true, linkcolor=primaryblue, urlcolor=primaryblue}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\begin{document}
+% ──────────────────────────────────────────────────────────────────────────────
+
+% ── Title Page ────────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \centering
+  \vspace*{2cm}
+  {\Huge\bfseries\color{primaryblue} Deep Learning Framework}\\[0.5em]
+  {\Huge\bfseries\color{primaryblue} From Scratch in NumPy}\\[1.5em]
+  {\large\color{darkgray} Project Bible --- Interview Preparation Guide}\\[3em]
+  \begin{tcolorbox}[colback=lightblue, colframe=primaryblue, width=0.85\textwidth, arc=6pt]
+    \centering\large
+    \textbf{What this document is:}\\[0.5em]
+    Everything you need to understand, explain, and defend this project\\
+    in any interview. Written in plain English, no jargon.
+  \end{tcolorbox}
+  \vfill
+  {\large Prakash Kumar Sarangi}\\
+  {\normalsize MTech CS, NIT Calicut}\\[0.5em]
+  {\normalsize CS6302E --- Theoretical Foundations of Machine Learning}\\[2em]
+  {\normalsize \today}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{What Is This Project? (Plain English Overview)}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\subsection{The One-Line Summary}
+
+\begin{tcolorbox}[colback=lightblue, colframe=primaryblue, arc=4pt]
+  \centering\large
+  ``I built a neural network training library from scratch --- like a mini version of PyTorch ---
+  using only NumPy, and tested it on two real image datasets.''
+\end{tcolorbox}
+
+\subsection{What Does ``From Scratch'' Actually Mean?}
+
+When most people do ML projects, they write:
+\begin{lstlisting}
+model = Sequential([Dense(128, activation='relu'), Dense(10, activation='softmax')])
+model.compile(optimizer='adam', loss='categorical_crossentropy')
+model.fit(X_train, y_train, epochs=30)
+\end{lstlisting}
+
+The framework (Keras/PyTorch) does all the actual work. You don't know what's happening inside.
+
+\textbf{This project is different.} Every single mathematical operation is implemented by hand:
+\begin{itemize}
+  \item The forward pass (how inputs become predictions)
+  \item Backpropagation (how the network learns from its mistakes)
+  \item The Adam optimizer (a smarter version of gradient descent)
+  \item Weight initialization strategies
+  \item Numerical gradient verification (a mathematical test that confirms the math is correct)
+\end{itemize}
+
+\subsection{Project Journey}
+
+\begin{center}
+\begin{tabular}{p{0.25\textwidth} c p{0.25\textwidth} c p{0.25\textwidth}}
+  \toprule
+  \textbf{Start} & $\rightarrow$ & \textbf{Extension} & $\rightarrow$ & \textbf{Final} \\
+  \midrule
+  Course assignment: classify letters B, 0, E on tiny 8x8 images & &
+  Port the same code to MNIST (60,000 real handwritten digits) & &
+  Build a full reusable framework: N layers, Adam, CE loss, CIFAR-10 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{What the Project Produces}
+
+\begin{center}
+\begin{tabular}{lll}
+  \toprule
+  \textbf{Benchmark} & \textbf{Architecture} & \textbf{Accuracy} \\
+  \midrule
+  MNIST (digits 0--9) & 784 -- 128 -- 10 & \textbf{97.66\%} \\
+  CIFAR-10 (10 image classes) & 3072 -- 512 -- 256 -- 10 & \textbf{50.95\%} \\
+  Random guess & --- & 10.00\% \\
+  CNN (for comparison) & ResNet etc. & \textasciitilde93\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Note on CIFAR-10 51\%:} This is not a failure. It is the point of the experiment. The project deliberately uses an MLP (fully connected network) on CIFAR-10 to show \textit{why} MLPs cannot compete with CNNs on image data --- and explains the exact reason.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{End-to-End Walk-Through --- The Complete Story}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\begin{warningbox}{How to use this section}
+This is the section to memorise. If an interviewer says ``walk me through your project from start to finish,'' this is exactly what you say. It is a single, connected story --- not bullet points, not definitions. Read it 5 times, then close the document and say it aloud.
+\end{warningbox}
+
+\subsection{The Full Story in Plain Prose}
+
+\textbf{The goal:} Train a neural network to look at a handwritten digit image and say which digit (0--9) it is.
+
+\textbf{Step 1 --- Raw Data}
+
+We start with the MNIST dataset: 70,000 greyscale images of handwritten digits, each 28$\times$28 pixels. We split them into 60,000 for training and 10,000 for testing. The test set is locked away and never used during training --- it is the final exam.
+
+Each image is a grid of pixel values between 0 (black) and 255 (white). Before feeding anything into the network, we \textbf{normalise} the pixel values to the range [-1, +1] using the formula $X = X / 127.5 - 1.0$. This is important because large input values cause exploding pre-activations, and our weight initialisation assumes inputs are centred around zero.
+
+We also \textbf{one-hot encode} the labels. The digit ``3'' becomes the vector [0, 0, 0, 1, 0, 0, 0, 0, 0, 0]. This is needed because the network's output is a 10-dimensional probability vector, and the loss function needs the target in the same shape.
+
+\textbf{Step 2 --- Network Initialisation}
+
+We create a \texttt{DeepNeuralNetwork([784, 128, 10])}. This means:
+\begin{itemize}
+  \item Input layer: 784 neurons (one per pixel)
+  \item Hidden layer: 128 neurons
+  \item Output layer: 10 neurons (one per digit class)
+\end{itemize}
+
+The network needs two weight matrices and two bias vectors:
+\begin{itemize}
+  \item $W_1$: shape (784, 128) --- connects input to hidden layer
+  \item $b_1$: shape (1, 128) --- bias for hidden layer, initialised to zeros
+  \item $W_2$: shape (128, 10) --- connects hidden to output layer
+  \item $b_2$: shape (1, 10) --- bias for output layer, initialised to zeros
+\end{itemize}
+
+We initialise $W_1$ and $W_2$ using \textbf{He initialisation}: random values drawn from a normal distribution with standard deviation $\sqrt{2 / \text{fan\_in}}$. The factor of 2 compensates for ReLU zeroing out roughly half of its inputs. Bad initialisation (all zeros, or too large) would prevent learning entirely.
+
+\textbf{Step 3 --- Forward Pass (One Mini-Batch)}
+
+Training happens in mini-batches of 256 images. For one such batch, the forward pass computes:
+
+\begin{enumerate}
+  \item $z_1 = X_{\text{batch}} \cdot W_1 + b_1$ \quad -- multiply input (256$\times$784) by weights (784$\times$128), add bias. Result: 256$\times$128.
+  \item $a_1 = \text{ReLU}(z_1)$ \quad -- apply ReLU element-wise. Any negative value becomes 0.
+  \item $z_2 = a_1 \cdot W_2 + b_2$ \quad -- multiply (256$\times$128) by (128$\times$10). Result: 256$\times$10.
+  \item $a_2 = \text{Softmax}(z_2)$ \quad -- convert 10 raw scores into 10 probabilities that sum to 1.
+\end{enumerate}
+
+We save $X_{\text{batch}}$, $a_1$, and $a_2$ in a \textbf{cache list}. We will need them in the backward pass.
+
+\textbf{Step 4 --- Compute the Loss}
+
+We now have $a_2$, a matrix of shape (256, 10), where each row is the network's probability distribution over 10 digits. We compare this against the true one-hot labels $y$ using \textbf{cross-entropy loss}:
+
+\begin{equation}
+  L = -\frac{1}{256} \sum_{i=1}^{256} \log(a_2[i, \text{true digit of image } i])
+\end{equation}
+
+In plain English: for each image, look at the probability the network assigned to the correct digit, take the log, negate it, and average over the batch. If the network said 99\% on the right digit, the loss contribution is $-\log(0.99) \approx 0.01$ (small, good). If it said 1\%, the contribution is $-\log(0.01) = 4.6$ (large, bad).
+
+\textbf{Step 5 --- Backward Pass (Backpropagation)}
+
+This is where the network learns. We use the chain rule to compute how much each weight contributed to the loss, then adjust it.
+
+\textit{Output layer:} The gradient at the output is the cleanest part. For cross-entropy with softmax, it simplifies to:
+\begin{equation}
+  \delta_2 = (a_2 - y) / 256
+\end{equation}
+This is just ``predicted minus true, divided by batch size.'' If the network said [0.1, 0.1, 0.7, 0.1...] but the true digit was 0, $\delta_2$ is [0.1-1, 0.1-0, 0.7-0...] / 256 = [-0.9, 0.1, 0.7...] / 256. Large negative for the right class (we need to push it up), positive for wrong classes (push them down).
+
+\textit{Output weight gradients:}
+\begin{equation}
+  \nabla W_2 = a_1^T \cdot \delta_2, \quad \nabla b_2 = \text{sum}(\delta_2, \text{axis}=0)
+\end{equation}
+
+\textit{Propagate error to hidden layer (the chain rule in action):}
+\begin{equation}
+  \delta_1 = (\delta_2 \cdot W_2^T) \odot \text{ReLU}'(a_1)
+\end{equation}
+We ask: ``which hidden neurons were responsible for this output error?'' We multiply $\delta_2$ by the transpose of $W_2$ to push the error signal backwards. Then we multiply by the ReLU derivative: neurons that were outputting a positive value (ReLU was open) pass the signal through; neurons that were outputting zero (ReLU was closed) block the signal entirely.
+
+\textit{Hidden weight gradients:}
+\begin{equation}
+  \nabla W_1 = X_{\text{batch}}^T \cdot \delta_1, \quad \nabla b_1 = \text{sum}(\delta_1, \text{axis}=0)
+\end{equation}
+
+\textbf{Step 6 --- Update Weights (Adam Optimiser)}
+
+We have gradients for all four parameters ($W_1, b_1, W_2, b_2$). We use Adam to update them:
+
+For each parameter (e.g., $W_1$):
+\begin{enumerate}
+  \item Update the \textbf{momentum}: $m \leftarrow 0.9 \cdot m + 0.1 \cdot \nabla W_1$ \quad (smooth average of recent gradients)
+  \item Update the \textbf{velocity}: $v \leftarrow 0.999 \cdot v + 0.001 \cdot (\nabla W_1)^2$ \quad (tracks gradient variance)
+  \item Apply \textbf{bias correction}: $\hat{m} = m / (1 - 0.9^t)$, $\hat{v} = v / (1 - 0.999^t)$
+  \item Update the weight: $W_1 \leftarrow W_1 - 0.001 \cdot \hat{m} / (\sqrt{\hat{v}} + 10^{-8})$
+\end{enumerate}
+
+The key idea: if a weight has been consistently getting a large gradient in one direction, Adam takes a bigger step. If the gradient has been noisy and fluctuating, Adam takes a smaller, more cautious step.
+
+\textbf{Step 7 --- One Epoch}
+
+Steps 3--6 are repeated for every mini-batch in the training set. With 60,000 training images and a batch size of 256, that is about 235 mini-batches per epoch. After all batches are processed, we have completed one epoch. We measure the accuracy on the full test set and record it.
+
+\textbf{Step 8 --- 30 Epochs of Training}
+
+We repeat Step 7 thirty times. Each epoch, the network sees all 60,000 training images (in random order), and the weights are updated $235 \times 30 = 7,050$ times. The loss steadily decreases and accuracy climbs:
+
+\begin{center}
+\begin{tabular}{cccc}
+  \toprule
+  Epoch & Loss & Train Acc & Test Acc \\
+  \midrule
+  1  & 0.499 & 92.6\% & 92.1\% \\
+  5  & 0.128 & 97.2\% & 96.4\% \\
+  15 & 0.050 & 99.0\% & 97.7\% \\
+  30 & 0.017 & 99.8\% & 97.7\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Final result: 97.66\% test accuracy} --- the network correctly classifies 9,766 out of 10,000 digits it has never seen before.
+
+\textbf{Step 9 --- Verification (Gradient Check)}
+
+Separately, we run \texttt{gradient\_check.py} to prove the backpropagation code is mathematically correct. For a tiny test network, we compute the gradient two ways:
+\begin{itemize}
+  \item Analytically via backprop (our implementation)
+  \item Numerically: perturb each weight by $\varepsilon = 10^{-5}$, measure change in loss, divide by $2\varepsilon$
+\end{itemize}
+The relative error between the two is $\approx 10^{-10}$ --- essentially machine precision. This is not a test we had to run; it is a proof that the math inside the framework is correct.
+
+\textbf{Step 10 --- CIFAR-10 Experiment}
+
+We run the same framework on CIFAR-10: 50,000 colour images (32$\times$32$\times$3 = 3,072 pixels) across 10 classes. We use a larger network (3072--512--256--10) and train for 40 epochs. The result is \textbf{50.95\%} test accuracy while training accuracy reaches 95.38\% --- the network memorises the training set but cannot generalise. Notably, vehicle classes do far better (ship 68.6\%, automobile 61.4\%) than animal classes (bird 36.1\%, cat 36.6\%), because animals have far more pose, texture, and viewpoint variation that a pixel-level model cannot capture.
+
+This demonstrates a fundamental architectural limitation: an MLP flattens the image to a 1D vector, losing all spatial information. Pixel (5,5) and pixel (5,6) are just two independent numbers. The network can never learn that they are adjacent. A CNN, which processes local patches of pixels together, reaches 93\%+ because it understands spatial structure. This experiment makes that gap concrete and measurable.
+
+\textbf{Step 11 --- The Web App}
+
+We load the saved MNIST model weights into a Flask web application. The user opens a browser, draws a digit on an HTML canvas, and the app:
+\begin{enumerate}
+  \item Captures the canvas as a PNG image
+  \item Preprocesses it: convert to greyscale, invert (canvas is white-on-black, MNIST is black-on-white), crop to bounding box, pad 20\%, resize to 28$\times$28, normalise to [-1,+1]
+  \item Flattens to a 784-dim vector and feeds it to the trained network
+  \item Returns the predicted digit and confidence scores for all 10 classes
+\end{enumerate}
+
+\subsection{The Interview-Ready Version (Say This)}
+
+\begin{interviewbox}{Walk me through your project end to end}
+``Sure. The goal was to build a neural network from scratch in NumPy --- meaning I implemented every operation by hand, no PyTorch or TensorFlow.
+
+I start with the MNIST dataset: 70,000 handwritten digit images. I normalise the pixel values to [-1, +1] and one-hot encode the labels. Then I initialise a three-layer network: 784 inputs, 128 hidden neurons, 10 outputs. The weights are set using He initialisation, which ensures the signal doesn't explode or vanish in the first forward pass.
+
+Training runs in mini-batches of 256 images. For each batch: I do a forward pass --- matrix multiply the input with the first weight matrix, apply ReLU, multiply again, apply Softmax to get probabilities. I cache every layer's output because I'll need them in the backward pass.
+
+Then I compute the cross-entropy loss --- essentially, how surprised was the network by the correct label?
+
+Then backpropagation. At the output layer, the gradient simplifies cleanly to `predicted minus true, divided by batch size'. I use the chain rule to propagate this error signal backwards: multiply by the transpose of the weight matrix, then element-wise multiply by the ReLU derivative. This gives me the gradient for each layer's weights.
+
+I update the weights using Adam: it keeps a running average of past gradients and a running average of squared gradients, using those to adapt the step size per parameter with bias correction.
+
+After 30 epochs and about 7,000 weight updates, the network reaches 97.66\% accuracy on 10,000 test images it has never seen.
+
+I also ran the same framework on CIFAR-10 to demonstrate the MLP ceiling --- it plateaus at 51\%, which I use to explain why CNNs exist. And I built a Flask web app where you can draw a digit and get a live prediction.''
+\end{interviewbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Project Structure --- Every File Explained}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\begin{conceptbox}{File Map}
+\begin{verbatim}
+project/
+  deep_neural_network.py       <-- The CORE of everything. The framework.
+  gradient_check.py            <-- Mathematical proof that backprop is correct.
+  train_mnist.py               <-- Train on MNIST, generate plots.
+  train_cifar10.py             <-- Train on CIFAR-10, benchmark MLP ceiling.
+  architecture_search_mnist.py <-- Find the best network size.
+  app.py                       <-- Flask web app: draw a digit, get prediction.
+  mnist_loader.py              <-- Download and prepare MNIST data.
+  cifar10_loader.py            <-- Download and prepare CIFAR-10 data.
+  neural_network.py            <-- Original assignment code (kept for history).
+  templates/index.html         <-- Web UI for the Flask app.
+\end{verbatim}
+\end{conceptbox}
+
+\subsection{\texttt{deep\_neural\_network.py} --- The Heart of the Project}
+
+This is the main deliverable. Everything else just calls this file. Think of it as your own mini-PyTorch.
+
+\textbf{What it supports:}
+\begin{itemize}
+  \item \textbf{Any number of layers}: You pass a list like \texttt{[784, 256, 128, 64, 10]} and it builds a 4-layer network automatically.
+  \item \textbf{Three activations}: ReLU, Sigmoid, Tanh
+  \item \textbf{Two losses}: Cross-Entropy (with Softmax output), MSE (with Sigmoid output)
+  \item \textbf{Two optimizers}: Adam, SGD
+  \item \textbf{Weight init}: He initialization (for ReLU), Xavier (for Sigmoid/Tanh)
+  \item \textbf{L2 regularization}: Prevents overfitting
+  \item \textbf{Save/Load}: Stores trained weights to a \texttt{.npz} file and loads them back
+\end{itemize}
+
+\textbf{How you use it (3 lines):}
+\begin{lstlisting}
+nn = DeepNeuralNetwork([784, 128, 10], activation='relu', loss='cross_entropy', optimizer='adam')
+nn.train(X_train, y_train, epochs=30, X_val=X_test, y_val=y_test)
+accuracy = nn.get_accuracy(X_test, y_test)
+\end{lstlisting}
+
+\subsection{\texttt{gradient\_check.py} --- The Proof of Correctness}
+
+This script answers the question: ``How do you know your backpropagation code is correct?''
+
+It uses a technique called \textbf{numerical gradient checking}: it computes the gradient two ways --- mathematically (via backprop) and numerically (by tweaking each weight slightly and measuring the change in loss). If both methods agree to within $10^{-10}$ error, the code is verified correct.
+
+\textbf{Result}: All 3 test configurations (ReLU+CE, Sigmoid+MSE, Tanh+CE) pass.
+
+\subsection{\texttt{train\_mnist.py} --- MNIST Training Script}
+
+\textbf{What it does:}
+\begin{enumerate}
+  \item Downloads MNIST (60,000 digit images) on first run
+  \item Creates a \texttt{DeepNeuralNetwork([784, 128, 10])}
+  \item Trains for 30 epochs with Adam, batch size 256
+  \item Saves the trained model to \texttt{model/mnist\_dnn\_model.npz}
+  \item Generates 4 result plots in \texttt{results/}
+\end{enumerate}
+
+\textbf{Plots generated:}
+\begin{itemize}
+  \item \texttt{mnist\_training\_curves.png} --- Loss and accuracy per epoch
+  \item \texttt{mnist\_weight\_maps.png} --- 128 hidden neurons visualized as 28x28 images
+  \item \texttt{mnist\_confusion\_matrix.png} --- Which digits get confused with which
+  \item \texttt{mnist\_sample\_predictions.png} --- Correct and wrong predictions shown
+\end{itemize}
+
+\subsection{\texttt{train\_cifar10.py} --- CIFAR-10 Benchmark}
+
+\textbf{What it does:} Same as above but for CIFAR-10 (50,000 colour images, 10 classes). Uses a bigger network: 3072--512--256--10. Trains for 40 epochs.
+
+\textbf{Purpose:} Not to get high accuracy, but to demonstrate the MLP ceiling (50.95\%) and explain why CNNs (which use local filters) reach 93\%.
+
+\subsection{\texttt{architecture\_search\_mnist.py} --- Finding the Best Size}
+
+Tests 6 different hidden layer sizes: 16, 32, 64, 128, 256, 512. Runs 2 trials each. Reports mean and standard deviation of test accuracy. This is how you do systematic experiment design --- something interviewers notice.
+
+\subsection{\texttt{app.py} --- The Live Demo}
+
+A Flask web application. You open a browser, draw a digit on a canvas, and the trained MNIST network classifies it instantly. Shows the top predicted digit and a confidence bar for all 10 digits.
+
+\textbf{The tricky part:} The canvas is white-background with black strokes. MNIST is black-background with white digits. The preprocessing pipeline inverts the image to match MNIST's convention before passing it to the network.
+
+\subsection{\texttt{mnist\_loader.py} and \texttt{cifar10\_loader.py} --- Data Pipelines}
+
+These handle downloading, caching, normalizing, and one-hot encoding the datasets.
+
+\textbf{MNIST normalization:} $X = X/127.5 - 1.0$ (pixels go from [0,255] to [-1, +1])
+
+\textbf{CIFAR-10 normalization:} Per-channel zero-mean, unit-variance using training set statistics. Each of the 3 colour channels (R, G, B) is normalized separately.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Core Concepts --- Built From the Ground Up}
+% ══════════════════════════════════════════════════════════════════════════════
+
+This section explains every concept used in the project in plain English. Read this once and you will be able to answer questions without memorizing definitions.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{What Is a Neural Network?}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{conceptbox}{The Simplest Possible Explanation}
+A neural network is a \textbf{mathematical function} that takes in numbers (e.g., pixel values of an image), performs a series of matrix multiplications and non-linear transformations, and outputs probabilities (e.g., ``this image is 92\% likely to be the digit 3'').
+
+It ``learns'' by adjusting its internal numbers (called \textbf{weights}) based on how wrong its predictions are.
+\end{conceptbox}
+
+\textbf{The structure:}
+\begin{itemize}
+  \item \textbf{Input layer}: The raw data. For MNIST, this is 784 numbers (28x28 pixels flattened).
+  \item \textbf{Hidden layers}: Intermediate transformations. Our MNIST network has one hidden layer of 128 neurons.
+  \item \textbf{Output layer}: The final predictions. For MNIST (10 digits), this is 10 numbers representing probabilities.
+\end{itemize}
+
+\textbf{What is a ``neuron''?} Just a number. Specifically, the output of a weighted sum passed through an activation function.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Forward Pass --- How Input Becomes Output}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The forward pass is the calculation that takes your input and produces a prediction.
+
+\textbf{For our 784--128--10 MNIST network:}
+
+\begin{align}
+  z_1 &= X \cdot W_1 + b_1 && \text{(linear transformation, shape: } n \times 128\text{)} \\
+  a_1 &= \text{ReLU}(z_1) && \text{(apply activation, shape: } n \times 128\text{)} \\
+  z_2 &= a_1 \cdot W_2 + b_2 && \text{(linear transformation, shape: } n \times 10\text{)} \\
+  a_2 &= \text{Softmax}(z_2) && \text{(probabilities that sum to 1)}
+\end{align}
+
+Where:
+\begin{itemize}
+  \item $X$ is the input (shape: $n \times 784$, where $n$ = batch size)
+  \item $W_1$ is the weight matrix connecting input to hidden layer (shape: $784 \times 128$)
+  \item $b_1$ is the bias vector (shape: $1 \times 128$)
+  \item $W_2, b_2$ are weights and biases for the output layer
+\end{itemize}
+
+\textbf{In plain English:} Each layer takes the output of the previous layer, multiplies it by a matrix of learned weights, adds a bias, and squashes the result through a non-linear function.
+
+\begin{conceptbox}{Why multiply by a matrix?}
+The weight matrix $W$ is where the network ``stores'' what it has learned. Each element $W_{ij}$ represents how strongly input feature $i$ influences neuron $j$. Training is just adjusting these numbers.
+\end{conceptbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Activation Functions}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\textbf{Why do we need them?} Without activation functions, stacking multiple linear layers is mathematically equivalent to a single linear layer. No amount of depth would help. Activation functions introduce non-linearity, allowing the network to learn complex patterns.
+
+\subsubsection{ReLU (Rectified Linear Unit) --- Used in Hidden Layers}
+
+\begin{equation}
+  \text{ReLU}(z) = \max(0, z)
+\end{equation}
+
+If the input is positive, pass it through unchanged. If negative, output zero.
+
+\textbf{Why ReLU?}
+\begin{itemize}
+  \item \textbf{Fast}: Just a comparison operation. No exponentials.
+  \item \textbf{Sparse}: Many neurons output exactly 0, making the network efficient.
+  \item \textbf{No vanishing gradient problem}: Gradient is 1 for positive inputs (doesn't shrink during backprop).
+\end{itemize}
+
+\subsubsection{Sigmoid}
+
+\begin{equation}
+  \sigma(z) = \frac{1}{1 + e^{-z}}
+\end{equation}
+
+Squashes any number to the range (0, 1). Useful for binary probabilities.
+
+\textbf{Problem:} For very large or very small $z$, the gradient is nearly 0. This is the \textbf{vanishing gradient problem} --- learning slows to almost nothing in deep networks.
+
+\subsubsection{Tanh}
+
+\begin{equation}
+  \tanh(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}}
+\end{equation}
+
+Squashes to (-1, 1). Better than sigmoid because it's zero-centred (outputs average to 0), but still suffers from vanishing gradients.
+
+\subsubsection{Softmax --- Used in Output Layer}
+
+\begin{equation}
+  \text{Softmax}(z_i) = \frac{e^{z_i}}{\sum_j e^{z_j}}
+\end{equation}
+
+Converts a vector of arbitrary numbers into a probability distribution (all positive, sum to 1).
+
+\textbf{Example:} If the output layer gives \texttt{[2.1, 0.5, 3.3]}, softmax converts this to \texttt{[0.20, 0.09, 0.71]}. The network is 71\% confident this is class 3.
+
+\begin{warningbox}{Numerical Stability Trick}
+We subtract the maximum value before computing softmax: $z_i \leftarrow z_i - \max(z)$. This prevents overflow (very large exponentials). The result is mathematically identical but numerically stable.
+\end{warningbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Loss Functions --- Measuring How Wrong We Are}
+% ─────────────────────────────────────────────────────────────────────────────
+
+A loss function takes the network's prediction and the true label, and returns a single number representing the error. Training tries to minimize this number.
+
+\subsubsection{MSE (Mean Squared Error)}
+
+\begin{equation}
+  L_{MSE} = \frac{1}{n} \sum_{i=1}^{n} \sum_j (y_{ij} - \hat{y}_{ij})^2
+\end{equation}
+
+The average of the squared differences between predicted and true values.
+
+\textbf{Problem for classification:} MSE treats all errors as equally bad in a symmetric way. For classification (where probabilities should be sharp), it gives weak gradients when the network is already close to the right answer, causing slow learning.
+
+\subsubsection{Cross-Entropy Loss --- The Right Choice for Classification}
+
+\begin{equation}
+  L_{CE} = -\frac{1}{n} \sum_{i=1}^{n} \sum_j y_{ij} \cdot \log(\hat{y}_{ij})
+\end{equation}
+
+Since $y$ is one-hot (only one class is 1, rest are 0), this simplifies to:
+\begin{equation}
+  L_{CE} = -\frac{1}{n} \sum_{i=1}^{n} \log(\hat{y}_{i, \text{true class}})
+\end{equation}
+
+\textbf{In plain English:} ``How surprised was the network by the correct answer?'' If the network said 99\% probability on the right class, $-\log(0.99) \approx 0.01$ --- low loss, good. If it said 1\% on the right class, $-\log(0.01) = 4.6$ --- high loss, bad.
+
+\begin{keybox}{The Key Insight: Why CE Beats MSE for Classification}
+This project achieves \textbf{97.66\%} with Cross-Entropy + Softmax.
+
+The original code used MSE + Sigmoid and achieved only \textbf{92\%}.
+
+Why? Cross-entropy combined with Softmax produces a beautifully clean gradient:
+\begin{equation}
+  \frac{\partial L_{CE}}{\partial z_{\text{output}}} = \hat{y} - y
+\end{equation}
+This is just ``predicted minus true.'' Strong, clean signal that drives fast, stable learning. MSE with sigmoid produces a weaker, more muddied gradient.
+
+\textbf{This is the single most important concept in this project to understand and explain.}
+\end{keybox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Backpropagation --- How the Network Learns}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{conceptbox}{The Intuition}
+During training, the network makes a prediction, we measure how wrong it was (the loss), and then we need to figure out: ``which weights caused this mistake, and by how much?'' Backpropagation is the algorithm that answers this question using the chain rule of calculus.
+\end{conceptbox}
+
+\textbf{The chain rule in English:} If $C$ depends on $B$ and $B$ depends on $A$, then the rate at which $C$ changes with respect to $A$ is: (how fast $C$ changes with $B$) $\times$ (how fast $B$ changes with $A$).
+
+\textbf{For our 2-layer network:}
+
+\textbf{Step 1: Output layer error (the ``delta'')}
+
+For CE + Softmax, the combined gradient is:
+\begin{equation}
+  \delta_2 = \frac{\hat{y} - y}{n}
+\end{equation}
+
+\textbf{Step 2: Output layer weight gradients}
+
+\begin{equation}
+  \nabla W_2 = a_1^T \cdot \delta_2, \quad \nabla b_2 = \sum \delta_2
+\end{equation}
+
+\textbf{Step 3: Propagate error back to hidden layer}
+
+\begin{equation}
+  \delta_1 = (\delta_2 \cdot W_2^T) \odot \text{ReLU}'(a_1)
+\end{equation}
+
+Where $\odot$ means element-wise multiplication and $\text{ReLU}'(a_1) = \mathbf{1}[a_1 > 0]$ (1 if positive, 0 otherwise).
+
+\textbf{Step 4: Hidden layer weight gradients}
+
+\begin{equation}
+  \nabla W_1 = X^T \cdot \delta_1, \quad \nabla b_1 = \sum \delta_1
+\end{equation}
+
+\textbf{Step 5: Update weights (SGD rule)}
+
+\begin{equation}
+  W \leftarrow W - \alpha \cdot \nabla W
+\end{equation}
+
+Where $\alpha$ is the learning rate.
+
+\textbf{The generalisation to N layers:} The pattern repeats. You start from the output, compute the delta, compute the gradients for that layer, propagate the delta one step back using the weight matrix and activation derivative, and repeat until you reach the input. This is implemented as a loop in \texttt{\_compute\_grads()} in \texttt{deep\_neural\_network.py}.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Optimizers --- How We Update the Weights}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsubsection{SGD (Stochastic Gradient Descent)}
+
+The simplest update rule:
+\begin{equation}
+  W \leftarrow W - \alpha \cdot \nabla W
+\end{equation}
+
+\textbf{Problem:} You need to carefully tune the learning rate $\alpha$. If too large: weights oscillate and training diverges. If too small: training is very slow.
+
+\subsubsection{Adam (Adaptive Moment Estimation) --- What This Project Uses}
+
+Adam is smarter. It keeps a running memory of past gradients and automatically adjusts the learning rate for each weight individually.
+
+\textbf{The four update equations:}
+
+\begin{align}
+  m_t &= \beta_1 m_{t-1} + (1 - \beta_1) g_t && \text{(1st moment: exponential average of gradients)}\\
+  v_t &= \beta_2 v_{t-1} + (1 - \beta_2) g_t^2 && \text{(2nd moment: exponential average of squared gradients)}\\
+  \hat{m}_t &= \frac{m_t}{1 - \beta_1^t} && \text{(bias correction)}\\
+  \hat{v}_t &= \frac{v_t}{1 - \beta_2^t} && \text{(bias correction)}\\
+  W &\leftarrow W - \alpha \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \varepsilon} && \text{(weight update)}
+\end{align}
+
+\textbf{Parameters used:} $\beta_1 = 0.9$, $\beta_2 = 0.999$, $\varepsilon = 10^{-8}$, $\alpha = 0.001$
+
+\begin{conceptbox}{Adam in Plain English}
+\textbf{$m_t$ (momentum):} A smoothed version of the current gradient, weighted toward recent history. If the gradient has been pointing in the same direction for many steps, $m_t$ is large --- take a bigger step.
+
+\textbf{$v_t$ (adaptive learning rate):} Tracks how much the gradient has been fluctuating. If a weight's gradient fluctuates wildly, $v_t$ is large and we divide by it --- take a smaller step (be cautious).
+
+\textbf{Bias correction:} At the start of training, $m_t$ and $v_t$ are initialized to 0. Without correction, early updates are too small. Dividing by $(1 - \beta^t)$ compensates.
+
+\textbf{Result:} Adam works well with almost any learning rate, converges fast, and requires little tuning. This is why it became the default optimizer in the field.
+\end{conceptbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Weight Initialisation --- Why It Matters}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\textbf{Bad initialisation kills training.}
+\begin{itemize}
+  \item All zeros: Every neuron computes the same thing, learns the same thing. Network never learns.
+  \item Too large: Activations explode, gradients explode, training diverges.
+  \item Too small: Activations and gradients vanish, network learns nothing.
+\end{itemize}
+
+\subsubsection{He Initialisation --- Used for ReLU Layers}
+
+\begin{equation}
+  W \sim \mathcal{N}\left(0, \sqrt{\frac{2}{\text{fan\_in}}}\right)
+\end{equation}
+
+Where \texttt{fan\_in} is the number of inputs to the layer. The factor of 2 compensates for ReLU setting roughly half of its inputs to zero.
+
+\subsubsection{Xavier Initialisation --- Used for Sigmoid/Tanh}
+
+\begin{equation}
+  W \sim \mathcal{N}\left(0, \sqrt{\frac{2}{\text{fan\_in} + \text{fan\_out}}}\right)
+\end{equation}
+
+Designed so that the variance of the output is equal to the variance of the input, which keeps gradients stable in both forward and backward passes.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Mini-Batch Training}
+% ─────────────────────────────────────────────────────────────────────────────
+
+Instead of updating weights after seeing all 60,000 images (full-batch) or after each single image (stochastic), we update after each small batch (e.g., 256 images).
+
+\textbf{Why?}
+\begin{itemize}
+  \item \textbf{Speed:} GPU/vectorization works best on batches, not single samples.
+  \item \textbf{Noise:} Each batch is a slightly different random sample, which adds noise to the gradient. This noise actually helps escape local minima.
+  \item \textbf{Memory:} You don't need all 60,000 images in memory at once.
+\end{itemize}
+
+\textbf{Each epoch:} Shuffle the training data, break into batches of 256, do a forward + backward pass on each batch, update weights after each batch.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{L2 Regularisation}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\textbf{The problem:} Overfitting. The network memorises the training data but performs poorly on new data.
+
+\textbf{The fix:} Add a penalty term to the loss that punishes large weights:
+
+\begin{equation}
+  L_{\text{total}} = L_{\text{data}} + \frac{\lambda}{2} \sum_{l} \|W_l\|^2
+\end{equation}
+
+\textbf{Effect on gradient:}
+\begin{equation}
+  \nabla W_l \leftarrow \nabla W_l + \frac{\lambda}{n} W_l
+\end{equation}
+
+The weight is ``pulled towards zero'' at each step. Large weights are penalised, which forces the network to spread the learning across many weights rather than relying too heavily on any single one.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Gradient Checking --- Proving Backprop is Correct}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{conceptbox}{The Core Idea}
+There are two ways to compute the gradient of the loss with respect to a weight $w$:
+\begin{enumerate}
+  \item \textbf{Analytically (backpropagation):} Fast, but you might have a bug.
+  \item \textbf{Numerically (finite differences):} Slow, but provably correct.
+\end{enumerate}
+If both give the same answer, your backpropagation code is correct.
+\end{conceptbox}
+
+\textbf{The numerical gradient formula (centered finite differences):}
+
+\begin{equation}
+  \frac{\partial L}{\partial w} \approx \frac{L(w + \varepsilon) - L(w - \varepsilon)}{2\varepsilon}
+\end{equation}
+
+For each weight, we:
+\begin{enumerate}
+  \item Slightly increase it by $\varepsilon = 10^{-5}$ and measure the loss
+  \item Slightly decrease it by $\varepsilon$ and measure the loss
+  \item Compute the slope (finite difference)
+  \item Compare with the analytical gradient from backprop
+\end{enumerate}
+
+\textbf{The relative error formula:}
+
+\begin{equation}
+  \text{relative error} = \frac{\|\nabla_{\text{analytical}} - \nabla_{\text{numerical}}\|}{\|\nabla_{\text{analytical}}\| + \|\nabla_{\text{numerical}}\|}
+\end{equation}
+
+\textbf{Threshold:} $< 10^{-4}$ is considered correct. Our implementation achieves $\approx 10^{-10}$ (essentially machine precision).
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{The MNIST Dataset}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{itemize}
+  \item 70,000 greyscale images of handwritten digits (0--9)
+  \item 60,000 training, 10,000 test
+  \item Each image is 28x28 pixels = 784 values per image
+  \item Standard benchmark used since 1998; still widely used today
+  \item Normalised to [-1, +1]: $X = X / 127.5 - 1.0$
+  \item Labels: one-hot encoded (e.g., digit 3 = [0, 0, 0, 1, 0, 0, 0, 0, 0, 0])
+\end{itemize}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{The CIFAR-10 Dataset}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{itemize}
+  \item 60,000 colour images, 10 classes: airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck
+  \item 50,000 training, 10,000 test
+  \item Each image is 32x32 pixels $\times$ 3 channels (RGB) = 3,072 values per image
+  \item Much harder than MNIST because of colour, texture, and viewpoint variation
+  \item Normalised per channel (R, G, B separately): zero mean, unit variance
+\end{itemize}
+
+\textbf{Why only 51\% on CIFAR-10?}
+
+An MLP flattens the 32x32x3 image into a single vector of 3,072 numbers. It has no way of knowing that pixel (5,5) is adjacent to pixel (5,6). It treats every pixel as independent.
+
+A CNN uses \textbf{local filters} (e.g., 3x3 kernels) that slide across the image, detecting edges, curves, and textures at any location. This spatial awareness is what allows CNNs to reach 93\%+.
+
+\textbf{The lesson:} Architecture choice matters. Not just layer sizes, but the fundamental structure (MLP vs CNN vs Transformer) determines what a model can learn.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Architecture Search}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\textbf{Question:} How do you choose the hidden layer size (16? 128? 512)?
+
+\textbf{Answer:} Run experiments. Test multiple sizes on the same dataset, measure test accuracy, pick the best.
+
+\textbf{Key principle:} Always evaluate on a \textbf{held-out test set} that the model has never seen during training. Do not measure accuracy on the training set --- that will always be high (the model memorises it) and tells you nothing about generalisation.
+
+\textbf{This project tests} hidden sizes 16, 32, 64, 128, 256, 512 (2 trials each, mean $\pm$ std on the held-out test set):
+
+\begin{center}
+\begin{tabular}{cccc}
+  \toprule
+  Hidden size & Parameters & Mean test acc & Best \\
+  \midrule
+  16  & 12,730  & 93.07\% $\pm$ 0.70\% & 93.77\% \\
+  32  & 25,450  & 94.96\% $\pm$ 0.05\% & 95.01\% \\
+  64  & 50,890  & 96.84\% $\pm$ 0.04\% & 96.87\% \\
+  128 & 101,770 & 97.69\% $\pm$ 0.02\% & 97.72\% \\
+  \textbf{256} & \textbf{203,530} & \textbf{97.94\% $\pm$ 0.11\%} & \textbf{98.04\%} \\
+  512 & 407,050 & 97.60\% $\pm$ 0.11\% & 97.71\% \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Observations (this is the story to tell):}
+\begin{itemize}
+  \item Very small networks (16 neurons) underfit --- only 93\%, not enough capacity to learn all digit variations.
+  \item Accuracy rises steadily with capacity up to 256 neurons (the best: 97.94\%).
+  \item At 512 neurons accuracy actually \textit{drops} slightly (97.60\%) --- too many parameters for the dataset, the network starts overfitting. More capacity is not always better.
+  \item The standard deviation is tiny ($\pm$0.02--0.11\% for larger nets), confirming the results are stable and not luck.
+\end{itemize}
+
+\textbf{Conclusion:} The best architecture is \texttt{784--256--10} at 97.94\%, but 128 is nearly as good (97.69\%) with half the parameters --- a sensible accuracy/size trade-off.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{The Interview Script}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\begin{warningbox}{How to Use This Section}
+These are scripts, not essays. Practise saying them out loud. The goal is to be able to explain the project in 30 seconds or 2 minutes without thinking.
+\end{warningbox}
+
+\subsection{The 30-Second Version (Elevator Pitch)}
+
+\begin{interviewbox}{Say This}
+``I built a deep learning framework from scratch in NumPy --- no PyTorch, no TensorFlow, nothing. The framework supports networks of any depth with multiple activation functions, uses the Adam optimiser with bias correction, and I verified the backpropagation is mathematically correct using numerical gradient checking. I tested it on MNIST where it achieves 97.66\% accuracy, and on CIFAR-10 where it intentionally demonstrates the 51\% ceiling of MLPs compared to CNNs.''
+\end{interviewbox}
+
+\subsection{The 2-Minute Version (Standard Interview Answer)}
+
+\begin{interviewbox}{Say This}
+``This project started as a course assignment where I had to classify 3 letters on tiny synthetic images. After completing that, I decided to go much deeper and turn it into a proper mini deep learning framework.
+
+The core of the project is a class called \texttt{DeepNeuralNetwork} that you configure like a PyTorch module --- you pass in the layer sizes, pick your activation function, loss function, and optimiser, and it builds and trains the network for you. Under the hood, I implemented the forward pass with full activation caching, N-layer generalised backpropagation using the chain rule, and the Adam optimiser with both momentum and adaptive learning rates.
+
+One thing I'm especially proud of is the gradient check. A lot of people implement backprop and just hope it's right. I wrote a separate script that verifies it numerically --- by perturbing each weight slightly and comparing the analytical gradient with the finite difference approximation. My implementation achieves $10^{-10}$ relative error, which is essentially machine precision.
+
+For results: on MNIST, I get 97.66\% test accuracy. For context, the original assignment code using MSE loss only reached 92\% --- switching to cross-entropy with softmax was the key insight that drove that improvement. I also trained a bigger network on CIFAR-10, which plateaus at about 51\%. That's intentional --- it demonstrates that MLPs can't do better than that because they're blind to spatial structure in images, which is exactly what CNNs fix.
+
+I also built a Flask web app where you can draw a digit on a canvas and the network classifies it in real time.''
+\end{interviewbox}
+
+\subsection{Explaining the MSE vs Cross-Entropy Insight}
+
+This is likely to come up. Here is the exact way to explain it:
+
+\begin{interviewbox}{Say This}
+``The original code used MSE loss --- squared difference between predicted and true values. When I switched to cross-entropy with softmax, accuracy jumped from 92\% to 97.66\%.
+
+The reason is the gradient signal. With CE+Softmax, the gradient at the output layer simplifies to just `predicted minus true', divided by batch size. Clean, strong signal. With MSE+sigmoid, you get an extra sigmoid-derivative term multiplied in, which is very small when the network is already outputting values near 0 or 1 --- this is the vanishing gradient problem. The network gets stuck because the gradient is too weak to move the weights meaningfully.
+
+Cross-entropy is the correct loss for classification. MSE is for regression problems where the output is a continuous value.''
+\end{interviewbox}
+
+\subsection{Explaining the CIFAR-10 Result}
+
+\begin{interviewbox}{Say This}
+``My network gets 51\% on CIFAR-10, and that's not a failure --- it's a demonstration. An MLP flattens the image into a vector of 3,072 numbers. Pixel at position (5,5) and pixel at (5,6) are just two independent numbers to the MLP; it has no idea they're adjacent. So it can't detect that there's an edge between them, or that there's a circular shape, or anything spatial.
+
+A CNN uses local filters --- a 3x3 patch of pixels is processed together, and the same filter slides across the whole image. This gives CNNs translational invariance and the ability to detect edges, textures, and shapes regardless of where they appear in the image. That's why a CNN with similar parameters can reach 93\% where my MLP hits a wall at 51\%. The architecture is the bottleneck, not the optimiser or the loss function.''
+\end{interviewbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Interview Questions and Answers}
+% ══════════════════════════════════════════════════════════════════════════════
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Questions About Backpropagation}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{interviewbox}{Q: Can you explain backpropagation?}
+``Backpropagation is the algorithm for computing gradients in a neural network. During training, the network makes a prediction and we compute the loss. Then we work backwards through the network layer by layer using the chain rule: at each layer, we compute how much that layer's weights contributed to the overall error, and we propagate the error signal one step further back. After one full backward pass, we have gradients for every weight in the network, which we use to update the weights.''
+\end{interviewbox}
+
+\begin{interviewbox}{Q: What is the chain rule and why does backprop use it?}
+``The chain rule says: if $y = f(g(x))$, then $dy/dx = (dy/dg) \cdot (dg/dx)$. Neural networks are composed functions --- each layer's output is the input to the next layer. To find how the loss changes with respect to an early layer's weights, you need to multiply the gradients through all the layers in between. That multiplication is what the chain rule enables and what backpropagation implements.''
+\end{interviewbox}
+
+\begin{interviewbox}{Q: How do you know your backpropagation implementation is correct?}
+``I implemented gradient checking. For each weight, I compute the gradient two ways: analytically via backprop, and numerically by slightly increasing and decreasing the weight by $\varepsilon = 10^{-5}$ and measuring the change in loss. The relative error between the two is about $10^{-10}$, which is essentially machine precision. This confirms the math is correct.''
+\end{interviewbox}
+
+\begin{interviewbox}{Q: What is the vanishing gradient problem?}
+``When you have deep networks with sigmoid or tanh activations, the derivative of these functions is at most 0.25 (sigmoid) or 1 (tanh) --- and much less when the inputs are large. As you multiply these derivatives together during backpropagation across many layers, the gradient gets exponentially smaller. By the time you reach the early layers, the gradient is nearly zero and those weights barely update. ReLU solves this because its derivative is 1 for all positive inputs.''
+\end{interviewbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Questions About the Optimiser}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{interviewbox}{Q: Why Adam over plain SGD?}
+``SGD requires you to carefully choose a single learning rate for all weights. Adam adapts the learning rate per parameter: weights with consistent gradients get larger steps, weights with noisy gradients get smaller steps. It also uses momentum --- a running average of past gradients --- which smooths out oscillations. In practice, Adam typically converges faster and is less sensitive to the initial learning rate choice.''
+\end{interviewbox}
+
+\begin{interviewbox}{Q: What is bias correction in Adam and why is it needed?}
+``Adam maintains running averages $m_t$ and $v_t$ initialised to zero. In the first few steps, these averages are heavily biased towards zero because they haven't had time to accumulate history. Bias correction divides by $(1 - \beta^t)$, which is close to zero early in training, inflating the estimate back to a reasonable scale. Without it, the first few updates would be unreasonably small.''
+\end{interviewbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Questions About the Results}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{interviewbox}{Q: Why is MNIST easy but CIFAR-10 hard?}
+``MNIST digits are greyscale, centred, and structurally simple --- a `1' is always a vertical stroke, a `0' is always an oval. The discriminating features map well to pixel-level statistics. CIFAR-10 has colour, texture, pose variation, and background clutter. An airplane can appear at any angle, in any colour, overlapping clouds. These require understanding spatial relationships and hierarchical features, which MLPs cannot capture.''
+\end{interviewbox}
+
+\begin{interviewbox}{Q: Your CIFAR-10 accuracy is only 51\% -- why is this in your project?}
+``That's the entire point of that experiment. The project is about understanding the fundamentals, and one of the most important fundamentals is that architecture matters. By deliberately using an MLP on CIFAR-10 and showing it hits a hard ceiling at 51\%, I demonstrate exactly why CNNs were invented and what property of the architecture makes the difference. A result of 93\% with a CNN would look better on paper but teach you nothing.''
+\end{interviewbox}
+
+\begin{interviewbox}{Q: What would you do to improve accuracy on CIFAR-10?}
+``The right tool is a CNN. Instead of flattening the image, a CNN applies local filters (e.g., 3x3 kernels) that slide across the image, detecting features like edges regardless of where they appear. Adding convolutional layers followed by pooling, with batch normalisation and potentially residual connections (ResNet-style), would push accuracy to 90\%+. But that's a different architecture, not something this MLP framework can do.''
+\end{interviewbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Questions About the Framework Design}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{interviewbox}{Q: How does your framework support arbitrary depth?}
+``The key is storing weights and biases as Python lists: \texttt{self.weights[0]}, \texttt{self.weights[1]}, etc. The forward pass is a loop over \texttt{range(n\_layers)}, applying each weight matrix and activation in sequence. Backprop is the same loop in reverse. Adding more layers is just a matter of passing a longer \texttt{layer\_sizes} list --- the code handles the rest automatically.''
+\end{interviewbox}
+
+\begin{interviewbox}{Q: How did you implement the activation caching in the forward pass?}
+``I maintain a list called \texttt{\_cache} where \texttt{\_cache[0]} is the raw input, \texttt{\_cache[1]} is the output of the first layer, \texttt{\_cache[2]} the second, and so on. During backpropagation, layer $i$ needs the output of layer $i-1$ to compute the gradient. Since we already computed all of these during the forward pass, we just look them up in the cache rather than recomputing.''
+\end{interviewbox}
+
+\begin{interviewbox}{Q: What is L2 regularisation and does your implementation support it?}
+``Yes. L2 adds a penalty $(\lambda/2) \sum \|W\|^2$ to the loss, which encourages small weights and prevents the network from memorising the training data. In the gradient, it adds a term $(\lambda/n) \cdot W$ to each weight gradient, effectively ``pulling'' the weights towards zero at each step. In my implementation, you pass \texttt{l2\_lambda} to the constructor and it's automatically included in the gradient computation.''
+\end{interviewbox}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\subsection{General ML Questions This Project Prepares You For}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{interviewbox}{Q: What is overfitting and how do you detect it?}
+``Overfitting is when a model learns the training data too well --- including its noise and peculiarities --- and fails to generalise to new data. You detect it by tracking both training accuracy and test accuracy during training. If training accuracy keeps rising but test accuracy plateaus or falls, the model is overfitting. In this project, by epoch 30 the training accuracy is 99.6\% and test accuracy is 97.7\% --- a 2\% gap is normal and acceptable.''
+\end{interviewbox}
+
+\begin{interviewbox}{Q: What is one-hot encoding?}
+``A one-hot vector represents a category as a vector of zeros with a single 1. For MNIST, digit 3 becomes [0,0,0,1,0,0,0,0,0,0]. We use it because the neural network's output is a 10-dimensional probability vector, and we need the target (true label) in the same format to compute the loss. If we used the integer 3 directly, the loss function wouldn't know how to compute the gradient correctly.''
+\end{interviewbox}
+
+\begin{interviewbox}{Q: Why do you normalise the input data?}
+``Two reasons. First, if features have very different scales (e.g., one pixel is in [0,255] and another is in [0,1]), the gradient landscape is poorly conditioned --- the loss changes very quickly in some directions and slowly in others, making training slow. Second, typical weight initialisations assume inputs with mean 0 and variance 1. If inputs are in [0,255], the pre-activations will be huge and we'll spend epochs fighting exploding gradients before the network stabilises.''
+\end{interviewbox}
+
+\begin{interviewbox}{Q: What is a mini-batch and why use it?}
+``A mini-batch is a small subset of the training data processed together. Full-batch (all data at once) is expensive for large datasets and gives exactly the same gradient every step. Single-sample (stochastic) is noisy and doesn't use vectorisation efficiently. A mini-batch of 256 is a middle ground: computationally efficient due to matrix operations, and the random sampling of each batch introduces beneficial noise that helps escape local minima.''
+\end{interviewbox}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Key Numbers to Memorise}
+% ══════════════════════════════════════════════════════════════════════════════
+
+\begin{center}
+\begin{tabular}{ll}
+  \toprule
+  \textbf{Fact} & \textbf{Value} \\
+  \midrule
+  MNIST test accuracy (this project) & 97.66\% \\
+  MNIST accuracy with old MSE loss & 92\% \\
+  CIFAR-10 MLP test accuracy & 50.95\% \\
+  CIFAR-10 MLP train accuracy & 95.38\% (overfits) \\
+  CNN accuracy on CIFAR-10 (reference) & \textasciitilde93\% \\
+  Random guessing (10-class) & 10\% \\
+  \midrule
+  MNIST: training samples & 60,000 \\
+  MNIST: test samples & 10,000 \\
+  MNIST: input size & 784 (28$\times$28) \\
+  MNIST: architecture & 784 -- 128 -- 10 \\
+  MNIST: parameters & 101,770 \\
+  \midrule
+  CIFAR-10: training samples & 50,000 \\
+  CIFAR-10: input size & 3,072 (32$\times$32$\times$3) \\
+  CIFAR-10: architecture & 3072 -- 512 -- 256 -- 10 \\
+  \midrule
+  Adam: $\beta_1$ & 0.9 \\
+  Adam: $\beta_2$ & 0.999 \\
+  Adam: $\varepsilon$ & $10^{-8}$ \\
+  Learning rate & 0.001 \\
+  Batch size & 256 (MNIST), 512 (CIFAR-10) \\
+  Gradient check relative error & $\approx 10^{-10}$ \\
+  \bottomrule
+\end{tabular}
+\end{center}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{What Makes This Project Stand Out}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Here are the specific things that differentiate this project from ``I trained a neural network'' projects. Mention these in interviews:
+
+\begin{enumerate}
+  \item \textbf{Mathematical verification:} You proved the backpropagation is correct to $10^{-10}$ precision using gradient checking. Most people never verify this.
+
+  \item \textbf{Explained a failure:} 51\% on CIFAR-10 is not a bug. It's a demonstrated, explained phenomenon with an architectural reason. Being able to explain \textit{why} something fails shows deeper understanding than just tuning until something works.
+
+  \item \textbf{Concrete insight about loss functions:} You measured the difference between MSE and cross-entropy (92\% vs 97.66\%), not just heard that CE is better.
+
+  \item \textbf{Proper experimental design:} Architecture search with a held-out test set, multiple trials, mean and std reported. This is how real experiments are run.
+
+  \item \textbf{End-to-end:} From training, to saving/loading weights, to a working web demo. Shows you can connect all the pieces, not just the math.
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{What You Should NOT Claim}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Be honest in interviews. These are the limits of this project:
+
+\begin{itemize}
+  \item \textbf{Do not claim expertise in CNNs.} This project uses fully-connected networks only.
+  \item \textbf{Do not claim expertise in PyTorch or TensorFlow.} This project deliberately avoids them.
+  \item \textbf{Do not claim state-of-the-art results.} 97.66\% on MNIST is good for a from-scratch MLP, not competitive with CNNs (99.7\%).
+  \item \textbf{Do not claim scalability.} A NumPy implementation is educational, not production-ready. Real frameworks use CUDA, automatic differentiation, and parallelism.
+\end{itemize}
+
+\textbf{What you CAN claim:} Deep understanding of how neural networks work at the mathematical level. The ability to implement, debug, verify, and explain each component from first principles. That is exactly what this project demonstrates.
+
+% ══════════════════════════════════════════════════════════════════════════════
+\section{Quick Revision --- The 10-Point Cheat Sheet}
+% ══════════════════════════════════════════════════════════════════════════════
+
+Read this the morning before an interview:
+
+\begin{enumerate}
+  \item \textbf{Project:} Mini deep learning framework in NumPy. N layers, ReLU, Adam, gradient check.
+
+  \item \textbf{Key result:} 97.66\% on MNIST with 784--128--10 network. Was 92\% with old code (MSE loss).
+
+  \item \textbf{Why the improvement?} Cross-entropy + Softmax gradient = $(\hat{y} - y)/n$. Clean signal. MSE gradient is weak near 0 and 1 --- vanishing gradients.
+
+  \item \textbf{CIFAR-10 51\%:} MLP cannot see spatial structure. CNNs use local filters. This is the demonstration, not a failure.
+
+  \item \textbf{Backprop:} Chain rule applied layer by layer, working backwards from the loss.
+
+  \item \textbf{Adam:} Momentum (smooth gradient average) + adaptive step size (divide by root of squared gradient average). Bias correction for first few steps.
+
+  \item \textbf{Gradient check:} Numerical verification. Perturb each weight $\pm\varepsilon$, compare slope with analytical gradient. My error: $10^{-10}$.
+
+  \item \textbf{He init for ReLU:} $\mathcal{N}(0, \sqrt{2/\text{fan\_in}})$. Xavier for sigmoid/tanh: $\mathcal{N}(0, \sqrt{2/(\text{fan\_in}+\text{fan\_out})})$.
+
+  \item \textbf{L2 reg:} Penalise large weights. Adds $(\lambda/n) W$ to gradient.
+
+  \item \textbf{Architecture search:} Tested 6 hidden sizes, 2 trials each, always measured on held-out test set.
+\end{enumerate}
+
+% ──────────────────────────────────────────────────────────────────────────────
+\vfill
+\begin{center}
+  \small\color{darkgray}
+  Built without frameworks --- because understanding what happens inside \texttt{model.fit()} matters.
+\end{center}
+% ──────────────────────────────────────────────────────────────────────────────
+
+\end{document}
